@@ -5,6 +5,8 @@
           href="https://unpkg.com/material-components-web@3.0.0/dist/material-components-web.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
+    <script src="https://unpkg.com/material-components-web@3.0.0/dist/material-components-web.min.js"></script>
+
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width">
 
@@ -12,7 +14,7 @@
 </head>
 
 <body>
-
+<!-- SelfIntroduction -->
 <div align="center">
     <img class="mdc-elevation--z1" src="img/avatar.jpg"
          style="max-width: 200px; border-radius: 50%;">
@@ -20,56 +22,94 @@
         <h2>Hi! I&#39;m umechanhika.</h2>
         <h5>Android &amp; Flutter Application Engineer in Tokyo.</h5>
     </div>
-    <div class="mdc-chip-set">
-        <a href="https://github.com/umechanhika" target="_blank">
-            <button class="mdc-chip">
-                <img src="img/logo_github.png" style="width: 20px; height: 20px;">
-                <span class="mdc-chip__text">Github</span>
-            </button>
-        </a>
-
-        <a href="https://play.google.com/store/apps/dev?id=5250267109563010314" target="_blank">
-            <button class="mdc-chip">
-                <i class="material-icons mdc-chip__icon mdc-chip__icon--leading">android</i>
-                <span class="mdc-chip__text">GooglePlay</span>
-            </button>
-        </a>
-
-        <a href="https://speakerdeck.com/umechanhika" target="_blank">
-            <button class="mdc-chip">
-                <i class="material-icons mdc-chip__icon mdc-chip__icon--leading">slideshow</i>
-                <span class="mdc-chip__text">SpeakerDeck</span>
-            </button>
-        </a>
-
-        <a href="https://qiita.com/umechanhika" target="_blank">
-            <button class="mdc-chip">
-                <img src="img/logo_qiita.png" style="width: 20px; height: 20px;">
-                <span class="mdc-chip__text">Qiita</span>
-            </button>
-        </a>
-
-        <a href="https://note.mu/umechanhika" target="_blank">
-            <button class="mdc-chip">
-                <img src="img/logo_note.png" style="width: 20px; height: 20px;">
-                <span class="mdc-chip__text">note</span>
-            </button>
-        </a>
-
-        <a href="https://twitter.com/umechanhika" target="_blank">
-            <button class="mdc-chip">
-                <img src="img/logo_twitter.png" style="width: 20px; height: 20px;">
-                <span class="mdc-chip__text">Twitter</span>
-            </button>
-        </a>
-
-        <a href="https://www.linkedin.com/in/umechanhika" target="_blank">
-            <button class="mdc-chip">
-                <img src="img/logo_linkedin.png" style="width: 20px; height: 20px;">
-                <span class="mdc-chip__text">LinkedIn</span>
-            </button>
-        </a>
-    </div>
 </div>
+
+<!-- Links -->
+<div class="mdc-list-group">
+    <!-- SourceCode & Apps -->
+    <h3 class="mdc-list-group__subheader">SourceCode &amp; Apps</h3>
+    <ul class="mdc-list mdc-list--two-line mdc-list--avatar-list">
+        <!-- Github -->
+        <li id="github" class="mdc-list-item">
+            <span class="mdc-list-item__graphic material-icons" aria-hidden="true">code</span>
+            <span class="mdc-list-item__text">
+                <span class="mdc-list-item__primary-text">Github</span>
+                <span class="mdc-list-item__secondary-text">Personal activities</span>
+            </span>
+        </li>
+        <li role="separator" class="mdc-list-divider"></li>
+
+        <!-- GooglePlay -->
+        <li id="GooglePlay" class="mdc-list-item">
+            <span class="mdc-list-item__graphic material-icons" aria-hidden="true">android</span>
+            <span class="mdc-list-item__text">
+                <span class="mdc-list-item__primary-text">GooglePlay</span>
+                <span class="mdc-list-item__secondary-text">Android apps</span>
+            </span>
+        </li>
+        <li role="separator" class="mdc-list-divider"></li>
+    </ul>
+
+    <!-- Blog & Presentations -->
+    <h3 class="mdc-list-group__subheader">Blog &amp; Presentations</h3>
+    <ul class="mdc-list mdc-list--two-line mdc-list--avatar-list">
+        <!-- Qiita -->
+        <li id="Qiita" class="mdc-list-item">
+            <span class="mdc-list-item__graphic material-icons" aria-hidden="true">edit</span>
+            <span class="mdc-list-item__text">
+                <span class="mdc-list-item__primary-text">Qiita</span>
+                <span class="mdc-list-item__secondary-text">Tech blog</span>
+            </span>
+        </li>
+        <li role="separator" class="mdc-list-divider"></li>
+
+        <!-- note -->
+        <li id="note" class="mdc-list-item">
+            <span class="mdc-list-item__graphic material-icons" aria-hidden="true">note</span>
+            <span class="mdc-list-item__text">
+                <span class="mdc-list-item__primary-text">note</span>
+                <span class="mdc-list-item__secondary-text">Non-tech blog</span>
+            </span>
+        </li>
+        <li role="separator" class="mdc-list-divider"></li>
+
+        <!-- SpeakerDeck -->
+        <li id="SpeakerDeck" class="mdc-list-item">
+            <span class="mdc-list-item__graphic material-icons" aria-hidden="true">slideshow</span>
+            <span class="mdc-list-item__text">
+                <span class="mdc-list-item__primary-text">SpeakerDeck</span>
+                <span class="mdc-list-item__secondary-text">Tech presentations</span>
+            </span>
+        </li>
+        <li role="separator" class="mdc-list-divider"></li>
+    </ul>
+
+    <!-- SNS -->
+    <h3 class="mdc-list-group__subheader">SNS</h3>
+    <ul class="mdc-list mdc-list--two-line mdc-list--avatar-list">
+        <!-- Twitter -->
+        <li id="Twitter" class="mdc-list-item">
+            <span class="mdc-list-item__graphic material-icons" aria-hidden="true">comment</span>
+            <span class="mdc-list-item__text">
+                <span class="mdc-list-item__primary-text">Twitter</span>
+                <span class="mdc-list-item__secondary-text">For everyday use</span>
+            </span>
+        </li>
+        <li role="separator" class="mdc-list-divider"></li>
+
+        <!-- LinkedIn -->
+        <li id="LinkedIn" class="mdc-list-item">
+            <span class="mdc-list-item__graphic material-icons" aria-hidden="true">person</span>
+            <span class="mdc-list-item__text">
+                <span class="mdc-list-item__primary-text">LinkedIn</span>
+                <span class="mdc-list-item__secondary-text">For business use</span>
+            </span>
+        </li>
+        <li role="separator" class="mdc-list-divider"></li>
+    </ul>
+</div>
+
+<!-- Javascript -->
+<script type="text/javascript" src="index.js"></script>
 </body>
 </html>
