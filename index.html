@@ -1,32 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet"
-          href="https://unpkg.com/material-components-web@3.0.0/dist/material-components-web.min.css">
+    <link rel="stylesheet" href="bundle.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="index.css">
     <link rel="icon" href="img/avatar.png" type="image/x-icon">
-
-    <script src="https://unpkg.com/material-components-web@3.0.0/dist/material-components-web.min.js"></script>
 
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width">
 
     <title>umechanhika.github.io</title>
 </head>
-
 <body>
 <!-- SelfIntroduction -->
-<div align="center">
-    <img class="avatar mdc-elevation--z1" src="img/avatar.png">
+<div class="mdc-card self-introduction">
+    <img class="profile-image" src="img/image-profile.png">
     <div>
-        <h3>Hi! I&#39;m umechanhika.</h3>
-        <h6>Android &amp; Flutter Application Engineer in Tokyo.</h6>
+        <h2>umechanhika</h2>
+        <p>Android &amp; Flutter Application Engineer in Tokyo.</p>
     </div>
 </div>
 
 <!-- Links -->
-<div class="mdc-list-group">
+<div class="mdc-list-group mdc-elevation--z1">
     <!-- SourceCode & Apps -->
     <h3 class="mdc-list-group__subheader">SourceCode &amp; Apps</h3>
     <ul class="mdc-list mdc-list--two-line mdc-list--avatar-list">
@@ -111,6 +106,6 @@
 </div>
 
 <!-- Javascript -->
-<script type="text/javascript" src="index.js"></script>
+<script src="bundle.js" async></script>
 </body>
 </html>
