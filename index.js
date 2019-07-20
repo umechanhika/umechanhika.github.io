@@ -1,3 +1,9 @@
+import {MDCList} from '@material/list';
+import {MDCRipple} from '@material/ripple';
+
+const list = new MDCList(document.querySelector('.mdc-list-group'));
+const listItemRipples = list.listElements.map((listItemEl) => new MDCRipple(listItemEl));
+
 document.getElementById("github").onclick = function() {
     window.open("https://github.com/umechanhika", "_blank");
 };

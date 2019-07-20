@@ -28,7 +28,7 @@ function materialImporter(url, prev) {
 }
 
 module.exports = {
-  entry: ['./app.scss', './app.js'],
+  entry: ['./index.scss', './index.js'],
   output: {
     filename: 'bundle.js',
   },
