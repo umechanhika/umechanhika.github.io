@@ -12,6 +12,10 @@ document.getElementById("GooglePlay").onclick = function() {
     window.open("https://play.google.com/store/apps/dev?id=5250267109563010314", "_blank");
 };
 
+document.getElementById("AppStore").onclick = function() {
+    window.open("https://apps.apple.com/us/developer/hikaru-umetsu/id1476958792?l=ja", "_blank");
+};
+
 document.getElementById("Qiita").onclick = function() {
     window.open("https://qiita.com/umechanhika", "_blank");
 };
