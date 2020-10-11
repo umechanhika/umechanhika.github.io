@@ -9,7 +9,7 @@ Personally, I make something that interests me.
     - As Android & Flutter engineer.
     - Experienced: Developing new business apps & Designing apps architecture.
 - [WealthNavi Inc.](https://www.wealthnavi.com/) (2019/10~)
-    - As mobile app engineer & product manager.
+    - As Android engineer & Product manager.
     - Experienced: Planning of application improvement & Management for company-wide project.
 
 ### Individual Projects
