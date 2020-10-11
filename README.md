@@ -43,6 +43,7 @@ OSS
   
 ### Other Links
 
+- [Zenn](https://zenn.dev/umechanhika)
 - [Qiita](https://qiita.com/umechanhika)
 - [SpeakerDeck](https://speakerdeck.com/umechanhika)
 - [AppStore](https://apps.apple.com/us/developer/hikaru-umetsu/id1476958792)
