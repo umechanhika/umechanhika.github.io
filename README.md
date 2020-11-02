@@ -34,6 +34,12 @@ Google Assistant App
 |-|-|
 |[SetagayaGarbageSeparation](https://assistant.google.com/services/a/uid/000000a2cf132b63)|SetagayaGarbageSeparation allows you to find out how to separate garbage in Setagaya Ward.|
 
+Chrome Extension
+
+|Name|Description|
+|-|-|
+|[QiitaBrowsingHistory](https://github.com/umechanhika/qiita-browsing-history)|QiitaBrowsingHistory allows you to see the browsing history of Qiita.com.|
+
 OSS
 
 |Name|Description|
