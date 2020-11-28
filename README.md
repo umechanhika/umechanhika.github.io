@@ -1,6 +1,6 @@
 ### Hi there 👋
 
-At work, I work as mobile app engineer and product manager.  
+At work, I work as mobile app engineer and project manager.
 Personally, I make something that interests me.
 
 ### Career
@@ -9,7 +9,7 @@ Personally, I make something that interests me.
     - As Android & Flutter engineer.
     - Experienced: Developing new business apps & Designing apps architecture.
 - [WealthNavi Inc.](https://www.wealthnavi.com/) (2019/10~)
-    - As Android engineer & Product manager.
+    - As Android engineer & Project manager.
     - Experienced: Planning of application improvement & Management for company-wide project.
 
 ### Individual Projects
