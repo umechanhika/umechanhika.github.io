@@ -7,7 +7,7 @@
 
 ### 職歴 :office:
 
-[株式会社ナビタイムジャパン](http://www.navitime.co.jp) (2016/04~2019/09)
+#### [株式会社ナビタイムジャパン](http://www.navitime.co.jp) (2016/04~2019/09)
 
 - 役割
     - Android兼Flutterエンジニア
@@ -23,7 +23,7 @@
         - 編集中...
         
 
-[ウェルスナビ株式会社](https://www.wealthnavi.com/) (2019/10~)
+#### [ウェルスナビ株式会社](https://www.wealthnavi.com/) (2019/10~)
 
 - 役割
     - Androidエンジニア兼プロジェクトマネージャー
