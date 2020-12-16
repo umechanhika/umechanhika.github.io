@@ -5,7 +5,7 @@
 個人では、モバイルアプリに限らず興味を持ったプラットフォームでサービス開発をしています。
 
 
-###　職歴
+### 職歴 :office:
 
 [株式会社ナビタイムジャパン](http://www.navitime.co.jp) (2016/04~2019/09)
 
@@ -31,7 +31,7 @@
     - 編集中...
 
 
-### 個人開発
+### 個人開発 :computer:
 
 Androidアプリ
 
@@ -66,7 +66,7 @@ OSS
 |[dotted_line](https://github.com/umechanhika/dotted_line)|dotted_lineはFlutterで点線の描画を簡単に実装できるパッケージです。こだわりポイントは、線のサイズや点同士の間隔、色や角の形状などをカスタマイズできる点です。|
   
 
-### リンク
+### リンク :link:
 
 - [Zenn](https://zenn.dev/umechanhika)
 - [Qiita](https://qiita.com/umechanhika)
