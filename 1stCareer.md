@@ -34,7 +34,7 @@ Flutterを用いた社内初の大規模プロジェクト。
 - 言語
   - Dart
   - Kotlin
-- SaaS
+- サービス
   - Firebase Analytics
   
 ---
@@ -67,7 +67,7 @@ Flutterを用いた社内初の小規模プロジェクト。
 - 言語
   - Dart
   - Kotlin
-- SaaS
+- サービス
   - Firebase Analytics
   
 ---
@@ -114,7 +114,7 @@ Flutterを用いた社内初の小規模プロジェクト。
 - 言語
   - Java
   - Kotlin
-- SaaS
+- サービス
   - Google Analytics
   - Firebase Analytics
   - Firebase Crashlytics
@@ -163,7 +163,7 @@ Flutterを用いた社内初の小規模プロジェクト。
 - 言語
   - Java
   - Kotlin
-- SaaS
+- サービス
   - Google Analytics
   - Firebase Analytics
   - Firebase Crashlytics
