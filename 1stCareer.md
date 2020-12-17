@@ -120,3 +120,53 @@ Flutterを用いた社内初の小規模プロジェクト。
   - Firebase Crashlytics
   - Firebase Cloud Messaging
   - Google Cloud Messaging
+
+---
+
+## 2016年7月~2019年9月 / バスNAVITIMEの開発・運用
+
+### プロジェクト概要
+
+バスに特化したBtoC 向けナビゲーションアプリの開発・運用案件。
+
+### 業務内容
+
+- 新規機能の仕様検討、実装、テスト。
+- 既存コードのリファクタリング、バグ修正。
+- 他プロジェクトとの技術連携、スケジュール調整。
+- 外部のSDK開発会社様との技術連携。
+- 社内ツールの改善による業務効率化。
+- ユーザーご意見を元にした機能改善検討。
+- デザイナーとの画面仕様調整。
+- サーバー開発者とのAPI仕様調整。
+- Androidアプリの設計、実装、テスト。
+- Jenkinsを用いたCI環境構築。
+
+### 実績・取り組み
+
+- アプリ開発
+  - EspressoによるUIテストにPageObjectパターンを導入し、UI変更に伴うUIテストのコード修正を容易にした。
+- CI環境構築
+  - Jenkins, Firebse Test Labを用いて自動ロボテスト環境を構築し、リリース前のデグレチェックの仕組みを作成した。
+  - Jenkins, Espresso, Firebase Test Labを用いて自動UIテスト環境を構築し、上記ロボテストでは拾えなかったリリース前のデグレチェックの仕組みを作成した。
+- 業務効率化
+  - Google Apps Scriptを用いてユーザーからのご意見とストアレビューをスプレッドシートに自動出力しSlackへ自動投稿する仕組みを作成し、これまで手作業で行なっていたスプレッドシートへの転記作業を無くした。
+- チーム運用
+  - アジャイル開発手法を導入し、週1回の振り返りとカンバンボードを用いた週2回の進捗確認を行うことで、コミュニケーション不足の課題を発見し、それに伴い発生していたリリース日の遅延を改善した。
+
+### 技術スタック
+
+- フレームワーク
+  - Android
+- DB
+  - Realm
+- 言語
+  - Java
+  - Kotlin
+- SaaS
+  - Google Analytics
+  - Firebase Analytics
+  - Firebase Crashlytics
+  - Firebase Remote Config
+  - Firebase Cloud Messaging
+  - Google Cloud Messaging
