@@ -47,7 +47,7 @@
 
 |名称|説明|
 |-|-|
-|[QiitaBrowsingHistory](https://github.com/umechanhika/qiita-browsing-history)|QiitaBrowsingHistoryは技術ブログサイトQiitaの閲覧履歴を見ることができる拡張機能です。Chrome拡張機能を作ってみたくて試しに作ったサンプルコードです。|
+|[CustomBrowsingHistory](https://chrome.google.com/webstore/detail/custom-browsing-hisotry/dklbojjfbmaonbdcgiabhfdindoppbko)|CustomBrowsingHistoryは自分好みに閲覧履歴をカスタマイズできるChrome拡張機能です。よく訪れるサイトや閲覧履歴機能がないサイトを設定することで過去に見たページに簡単にアクセスすることができます。|
 
 ### OSS
 
