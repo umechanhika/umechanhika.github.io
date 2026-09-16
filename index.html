@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>梅津 光 — モバイルアプリエンジニア</title>
-<meta name="description" content="エンジニアからプロダクトマネージャーを6年経験し、再びモバイルアプリエンジニアに戻りました。経歴・つくったもの・発信をまとめています。">
+<title>梅津 光｜モバイルアプリエンジニア</title>
+<meta name="description" content="エンジニアとプロダクトマネージャーの両方を経験したモバイルアプリエンジニアです。エンジニアが意思決定に関わるための支援と、プロダクトマネージャーを組織で育てる支援のご相談を受けています。">
 <link rel="canonical" href="https://umechanhika.github.io/">
 
 <meta property="og:type" content="profile">
-<meta property="og:title" content="梅津 光 — モバイルアプリエンジニア">
-<meta property="og:description" content="エンジニアからプロダクトマネージャーを6年経験し、再びモバイルアプリエンジニアに戻りました。">
+<meta property="og:title" content="梅津 光｜モバイルアプリエンジニア">
+<meta property="og:description" content="エンジニアとプロダクトマネージャーの両方を経験したモバイルアプリエンジニアです。その間をつなぐ仕事のご相談を受けています。">
 <meta property="og:url" content="https://umechanhika.github.io/">
-<!-- TODO: assets/ogp.png（1200×630）を用意する。未設置のあいだ、SNS 共有時に画像が出ない -->
+<!-- TODO: assets/ogp.png（1200×630）を用意する。未設置のあいだ、SNS共有時に画像が出ない -->
 <meta property="og:image" content="https://umechanhika.github.io/assets/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@umechanhika">
@@ -21,15 +21,15 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="style.css">
 
 <script>
 (function () {
-  // TODO: GA4 の測定 ID に差し替える（G- で始まる文字列）
+  // TODO: GA4の測定IDに差し替える（Gで始まる文字列）
   var GA_ID = 'G-XXXXXXXXXX';
   if (GA_ID === 'G-XXXXXXXXXX') {
-    console.error('[未設定] GA4 の測定 ID が差し替えられていません。アクセス解析は記録されていません。index.html の GA_ID を直してください。');
+    console.error('[未設定] GA4の測定IDが差し替えられていません。アクセス解析は記録されていません。index.htmlのGA_IDを直してください。');
     return;
   }
   var s = document.createElement('script');
@@ -71,11 +71,11 @@
   <div class="wrap site-head__inner">
     <a class="site-head__name" href="#top">umechanhika</a>
     <nav class="site-nav" aria-label="ページ内">
-      <a href="#career">キャリア</a>
+      <a href="#offer">ご相談</a>
+      <a href="#why">なぜできるのか</a>
       <a href="#experience">経歴</a>
-      <a href="#skills">できること</a>
       <a href="#works">つくったもの</a>
-      <a href="#writing">発信</a>
+      <a href="#contact">連絡先</a>
     </nav>
   </div>
 </header>
@@ -84,49 +84,96 @@
 
 <!-- ヒーロー -->
 <section class="hero" id="top">
-  <div class="wrap hero__inner">
+  <div class="wrap wrap--route hero__inner">
     <div class="hero__body">
-      <h1 class="hero__lead">思い描いたものが形になる楽しさを追いかけて、PdM を6年やってから作り手に戻りました</h1>
-      <p class="hero__name">梅津 光 <span>うめちゃん</span></p>
-      <p class="hero__now">モバイルアプリエンジニア（Android） — ウェルスナビ株式会社</p>
+      <h1 class="hero__lead">エンジニアとプロダクトマネージャー、その両方をやってきました。</h1>
+      <p class="hero__sub">その間をつなぐ仕事のご相談を受けています。</p>
+      <p class="hero__name">梅津 光</p>
+      <p class="hero__now">モバイルアプリエンジニア。資産運用サービスのウェルスナビ株式会社で、Androidアプリを作っています。</p>
+      <p class="hero__now">2016年からアプリの開発に携わっています。うち6年はプロダクトマネージャー（PdM）として、作るものを決める側にいました。</p>
       <div class="hero__actions">
-        <a class="btn btn--primary" href="https://x.com/umechanhika">X で連絡する</a>
-        <a class="btn" href="https://github.com/umechanhika">GitHub</a>
+        <a class="btn btn--primary" href="#offer">受けられるご相談を見る</a>
+        <a class="btn" href="#contact">連絡する</a>
       </div>
     </div>
-    <!-- TODO: assets/profile.jpg に顔写真を置き、下の div を img に差し替える
-         <img class="hero__photo" src="assets/profile.jpg" alt="梅津 光" width="400" height="400"> -->
-    <div class="hero__photo ph" role="presentation"><span>顔写真</span></div>
+    <div class="hero__photos">
+      <figure class="hero__figure">
+        <img class="hero__photo hero__photo--icon" src="assets/avatar.png" alt="オンラインで使っているアイコン" width="460" height="460">
+        <figcaption>@umechanhika</figcaption>
+      </figure>
+      <figure class="hero__figure">
+        <img class="hero__photo" src="assets/profile.jpg" alt="梅津 光" width="400" height="400">
+        <figcaption>梅津 光</figcaption>
+      </figure>
+    </div>
   </div>
 </section>
 
-<!-- キャリアの軸 -->
-<section class="section" id="career">
-  <div class="wrap">
-    <p class="eyebrow">CAREER</p>
-    <h2 class="section__title">キャリアの軸</h2>
+<!-- 受けられるご相談 -->
+<section class="section" id="offer">
+  <div class="wrap wrap--route">
+    <h2 class="section__title">受けられるご相談</h2>
+
+    <ol class="offers">
+      <li class="offer">
+        <h3 class="offer__title">エンジニアが意思決定に関わるための支援</h3>
+        <p>技術的な正しさだけでは、プロダクトの決定は動きません。意見が通らないのは、間違っているからではありません。ステークホルダーに説明できるロジックがないからです。そのロジックをエンジニアの側から設計する方法をお伝えします。</p>
+      </li>
+      <li class="offer">
+        <h3 class="offer__title">プロダクトマネージャーを組織で育てる支援</h3>
+        <p>プロダクトマネージャーを任されたばかりの方の立ち上がりを支援します。会議体の設計や、目的を言語化することといった土台から一緒に組み立てます。</p>
+      </li>
+      <li class="offer">
+        <h3 class="offer__title">エンジニアとプロダクトマネージャーの協働づくり</h3>
+        <p>要件の受け渡し方や、意見の出し方を仕組みにします。片方だけでは決められない部分を、両側から詰めます。</p>
+      </li>
+    </ol>
+
+    <p class="offers__note">形式は勉強会、ワークショップ、個別の相談など、ご要望に合わせます。</p>
+  </div>
+</section>
+
+<!-- なぜできるのか -->
+<section class="section" id="why">
+  <div class="wrap wrap--route">
+    <h2 class="section__title">なぜできるのか</h2>
 
     <div class="prose">
-      <h3>なぜ PdM に移ったのか</h3>
-      <p>エンジニアとして働きながら個人開発を続けるうちに、作る技術だけでは使ってもらえるサービスにはならないと感じました。次に必要なのは「何を作るか」「なぜ作るか」を考える力で、そこを伸ばしたいと思ったのがきっかけです。</p>
+      <h3>エンジニアからプロダクトマネージャーへ</h3>
+      <p>エンジニアとして働きながら、個人開発を続けていました。そこで、作る技術だけでは使ってもらえるサービスにならないと気づきました。何を作るか、なぜ作るかを考える力を伸ばしたくて、2019年にプロダクトマネージャーへ移りました。</p>
 
-      <h3>PdM の6年で分かったこと</h3>
-      <p>何を作るか・なぜ作るかを考える力は、たしかに大切でした。ただ、それ以上に自分に足りていなかったのは、業界が変わっても職種が変わっても必要になる土台のほうでした。ビジネスコミュニケーションと会議体の設計、ミーティングの目的を言語化すること、議論をどう前に進めるかを判断すること。</p>
+      <h3>6年やって分かったこと</h3>
+      <p>何を作るか、なぜ作るかを考える力は、たしかに大切でした。ただ、自分にはもっと足りないものがありました。業界が変わっても職種が変わっても必要になる土台です。具体的には次の3つでした。</p>
+      <ul class="bullets">
+        <li>ビジネスコミュニケーションと会議体の設計</li>
+        <li>ミーティングの目的を言語化すること</li>
+        <li>議論をどう前に進めるかを判断すること</li>
+      </ul>
+      <p>ここでつまずいた経験が、いま受けているご相談の元です。</p>
 
-      <h3>なぜエンジニアに戻ったのか</h3>
-      <p>土台が身について実践できるようになってきた頃、久しぶりに個人開発をしたら、作ることの楽しさを思い出しました。新卒の研修で、自分が思い描いたものが動くものとして形になる感覚がとても楽しかった。それが原体験になっていました。</p>
-      <p>もう一度その感覚を味わいたいと思ったのが一つ。もう一つは、PdM を経験したからこそ PdM の立場と考え方が理解でき、以前エンジニアだったときよりも協働して成果を最大化できるのではないかと考えたことです。</p>
-      <p>加えて、AI を活用したものづくりに乗り遅れたくない、という思いもありました。</p>
+      <h3>ふたたびエンジニアへ</h3>
+      <p>土台が身につき、実践できるようになってきた頃です。久しぶりに個人開発をして、作ることの楽しさを思い出しました。新卒の研修で、思い描いたものが動くものとして形になる感覚がとても楽しかったです。それが原体験になっていました。</p>
+      <p>2025年10月にエンジニアへ戻りました。理由は2つあります。</p>
+      <ul class="bullets">
+        <li>もう一度その感覚を味わいたかったこと</li>
+        <li>プロダクトマネージャーを経験したからこそ、以前より協働して成果を最大化できると考えたこと</li>
+      </ul>
+      <p>加えて、AIを活用したものづくりに乗り遅れたくないという思いもありました。</p>
     </div>
 
     <div class="refs">
+      <div class="ref">
+        <p class="ref__label">DroidKaigi 2026</p>
+        <p class="ref__title">なぜエンジニアの意見は届かないのか</p>
+        <p class="ref__desc">エンジニアがプロダクトの意思決定に影響を与えるための実践Tips</p>
+        <p class="ref__links">
+          <a href="https://youtu.be/qgYkGWEXBG4">動画を見る</a>
+          <a href="https://www.docswell.com/s/WN_Tech-PR/53JY4Y-2026-09-02-105743">発表資料を見る</a>
+        </p>
+      </div>
       <a class="ref" href="https://note.com/wealthnavi_hr/n/ne3ca6f1e53bc">
-        <span class="ref__label">会社公式インタビュー</span>
-        <span class="ref__title">PdM を経験することで見えた、エンジニアとしての新しい視座</span>
-      </a>
-      <a class="ref" href="#talk">
-        <span class="ref__label">この話は DroidKaigi で話しました</span>
-        <span class="ref__title">なぜエンジニアの意見は届かないのか</span>
+        <span class="ref__label">ウェルスナビ 採用note</span>
+        <span class="ref__title">PdMを経験することで見えた、エンジニアとしての新しい視座</span>
       </a>
     </div>
   </div>
@@ -134,55 +181,60 @@
 
 <!-- 職務経歴 -->
 <section class="section" id="experience">
-  <div class="wrap">
-    <p class="eyebrow">EXPERIENCE</p>
+  <div class="wrap wrap--route">
     <h2 class="section__title">職務経歴</h2>
 
     <ol class="jobs">
       <li class="job">
         <div class="job__meta">
-          <p class="job__term">2025.10 — 現在</p>
-          <p class="job__role">Android エンジニア</p>
+          <p class="job__term">2025年10月から</p>
+          <p class="job__role">Androidエンジニア</p>
           <p class="job__org"><a href="https://corp.wealthnavi.com/">ウェルスナビ</a></p>
+          <p class="job__what">資産運用を自動で行うサービス</p>
         </div>
         <div class="job__body">
-          <p>ロボアドバイザーの機能開発を行うチームで、実装に携わりながらチームと開発プロセスを整えています。</p>
-          <p>事業側から来る要件に対して、システム観点の要望や制約を返しつつ、開発を担う立場だからこそ気づける顧客視点のフィードバックも返す立ち位置です。条件の組み合わせや顧客の状態を網羅的に整理し、それぞれの場合に何が起きるかを洗い出したうえで、顧客にとって受け入れられる体験になっているかを事業側と対話しながら形にしています。</p>
-          <p>モバイルチームの目標設定と、チーム全体のタスク管理の仕組み作りも担当しています。</p>
+          <p>資産運用サービスの機能開発を行うチームにいます。実装に携わりながら、チームと開発プロセスを整えています。</p>
+          <p>事業側から要件を受け取ったら、システム観点の要望や制約を返します。あわせて、開発を担う立場だから気づける顧客視点のフィードバックも返します。</p>
+          <p>条件の組み合わせや顧客の状態を網羅的に整理し、それぞれの場合に何が起きるかを洗い出します。そのうえで、顧客に受け入れられる体験になっているかを事業側と話しながら形にしています。</p>
+          <p>モバイルチームの目標設定と、タスク管理の仕組み作りも担当しています。</p>
+          <!-- TODO: チームの人数を入れると規模が伝わる -->
         </div>
       </li>
 
       <li class="job">
         <div class="job__meta">
-          <p class="job__term">2019.10 — 2025.09</p>
+          <p class="job__term">2019年10月から2025年9月</p>
           <p class="job__role">プロダクトマネージャー</p>
           <p class="job__org"><a href="https://corp.wealthnavi.com/">ウェルスナビ</a></p>
+          <p class="job__what">資産運用を自動で行うサービス</p>
         </div>
         <div class="job__body">
-          <p>新規事業の PdM として、開発と事業の橋渡しを担当しました。セキュリティ対応のプロジェクトでは、安全性と利便性を両立した顧客体験を設計しています。</p>
-          <!-- TODO: 各案件で何を判断したかを1行ずつ足す -->
+          <p>新規事業のプロダクトマネージャーとして、開発と事業の橋渡しを担当しました。セキュリティ対応のプロジェクトでは、安全性と利便性を両立した顧客体験を設計しました。</p>
+          <p class="job__lead">担当した主な案件です。いずれも期日が動かせないものでした。</p>
           <ul class="tags">
-            <li>おまかせ NISA のローンチ</li>
+            <li>おまかせNISAのローンチ</li>
             <li>証券会社との協業サービス</li>
-            <li>新 NISA 対応</li>
+            <li>新NISA対応</li>
             <li>保険事業の立ち上げ</li>
             <li>エンジニアリングエンゲージメント向上の取り組み</li>
           </ul>
+          <!-- TODO: 各案件で何を判断したかを1行ずつ足す -->
         </div>
       </li>
 
       <li class="job">
         <div class="job__meta">
-          <p class="job__term">2016.04 — 2019.09</p>
+          <p class="job__term">2016年4月から2019年9月</p>
           <p class="job__role">モバイルエンジニア</p>
           <p class="job__org"><a href="https://corporate.navitime.co.jp/">ナビタイムジャパン</a></p>
+          <p class="job__what">経路検索サービス</p>
         </div>
         <div class="job__body">
-          <p>鉄道事業者向けの公式アプリと、自社のバスナビゲーションアプリを担当しました。要件定義から実装・テスト・障害対応まで、Android と Flutter の両方で関わっています。</p>
+          <p>鉄道事業者向けの公式アプリと、自社のバスナビゲーションアプリを担当しました。要件定義から実装・テスト・障害対応まで、AndroidとFlutterの両方で関わりました。</p>
           <ul class="bullets">
-            <li>鉄道事業者の公式 Android アプリを、ファーストリリースまで設計・実装を1人で担当しました。以降3年間、機能追加と OS アップデート対応を続けています。</li>
-            <li>100% Java だったコードベースに Kotlin を導入し、全体の52%まで移行しました。あわせて MVVM を導入し、ユニットテストを書ける状態にしています。</li>
-            <li>社内で初めて Flutter を採用する案件を、技術選定から担当しました。アプリ開発者不足という課題に対して短納期でのリリースを実現し、社内で Flutter 採用が増えるきっかけになりました。</li>
+            <li>鉄道事業者の公式Androidアプリで、ファーストリリースまでの設計と実装を1人で担当しました。その後3年間、機能追加とOSアップデート対応を続けました。</li>
+            <li>100% JavaだったコードベースにKotlinを導入し、全体の52%まで移行しました。あわせてMVVMを導入し、ユニットテストを書ける状態にしました。</li>
+            <li>社内で初めてFlutterを採用する案件を、技術選定から担当しました。短納期でのリリースを実現し、社内でFlutter採用が増えるきっかけになりました。</li>
           </ul>
         </div>
       </li>
@@ -192,24 +244,23 @@
 
 <!-- できること -->
 <section class="section" id="skills">
-  <div class="wrap">
-    <p class="eyebrow">SKILLS</p>
+  <div class="wrap wrap--route">
     <h2 class="section__title">できること</h2>
+    <p class="section__note">Androidは2016年から、Flutterは2019年から実務で使っています。</p>
 
     <div class="skills">
       <div class="skills__col">
         <h3 class="skills__head">技術</h3>
-        <ul class="tags tags--fill">
+        <ul class="tags">
           <li>Android / Kotlin / Java</li>
           <li>Flutter / Dart</li>
           <li>自動テスト</li>
           <li>CI / 自動化</li>
           <li>Firebase</li>
           <li>Realm</li>
-          <li>JavaScript / Chrome 拡張</li>
+          <li>JavaScript / Chrome拡張</li>
           <li>GitHub Actions</li>
         </ul>
-        <p class="note">モバイルアプリエンジニアとして約4年、その後 PdM を6年経験し、2025年10月からエンジニアに戻りました。</p>
       </div>
       <div class="skills__col">
         <h3 class="skills__head">技術以外</h3>
@@ -226,8 +277,7 @@
 
 <!-- つくったもの -->
 <section class="section" id="works">
-  <div class="wrap">
-    <p class="eyebrow">WORKS</p>
+  <div class="wrap wrap--route">
     <h2 class="section__title">つくったもの</h2>
 
     <div class="cards">
@@ -236,8 +286,13 @@
         <div class="card__shot ph" role="presentation"><span>スクリーンショット</span></div>
         <div class="card__body">
           <h3 class="card__title"><a href="https://pub.dev/packages/dotted_line">dotted_line</a></h3>
-          <p class="card__meta">Flutter / OSS — pub.dev いいね 326・GitHub star 48</p>
-          <p>Flutter で点線を描くウィジェットです。2019年に公開して、いまも使われ続けています。方向・太さ・グラデーション・角丸に対応し、再描画の多い画面向けの最適化オプションを持たせました。</p>
+          <p class="card__meta">Flutterのパッケージ</p>
+          <p>Flutterで点線を描くウィジェットです。2019年に公開して、いまも使われ続けています。方向・太さ・グラデーション・角丸に対応しました。再描画の多い画面向けに、最適化オプションも持たせています。</p>
+          <dl class="stats">
+            <div><dt>pub.devのいいね</dt><dd>326</dd></div>
+            <div><dt>GitHubのスター</dt><dd>48</dd></div>
+          </dl>
+          <p class="card__foot">pub.devはFlutterのパッケージ配布サイトです。</p>
         </div>
       </article>
 
@@ -246,8 +301,8 @@
         <div class="card__shot ph" role="presentation"><span>スクリーンショット</span></div>
         <div class="card__body">
           <h3 class="card__title"><a href="https://kyotei-lab.com/">競艇AIラボ</a></h3>
-          <p class="card__meta">Web</p>
-          <p>公式のボートレースデータから予想記事を自動生成し、配信するサイトです。実績を盛った予想サイトが多いなかで、誠実であることを売りにしました。予想がどう作られているかを公開し、実績は機械集計値だけを出しています。</p>
+          <p class="card__meta">Webサイト</p>
+          <p>AIが毎日データを分析して、競艇の予想を出すサイトです。実績を盛った予想サイトが多いなかで、的中実績を全公開することを軸にしました。予想の作られ方も公開し、出す数字は機械集計値だけに絞っています。</p>
         </div>
       </article>
 
@@ -256,7 +311,7 @@
         <div class="card__shot ph" role="presentation"><span>スクリーンショット</span></div>
         <div class="card__body">
           <h3 class="card__title"><a href="https://agentmgr.app/">AgentManager</a></h3>
-          <p class="card__meta">macOS</p>
+          <p class="card__meta">macOSアプリ</p>
           <p>コーディングエージェントを複数並行で動かすと、入力待ちで止まったものに気づけません。それを知らせて、ワンクリックで該当の画面へ飛べるようにしたツールです。配布と更新の仕組みまで作って運用しています。</p>
         </div>
       </article>
@@ -266,8 +321,8 @@
         <div class="card__shot ph" role="presentation"><span>スクリーンショット</span></div>
         <div class="card__body">
           <h3 class="card__title"><a href="https://nozan-cross.web.app/">ノー残クロス</a></h3>
-          <p class="card__meta">Web / Flutter</p>
-          <p>勤怠の過不足を先読みして、毎日少しずつ調整できるようにする Web アプリです。足りない分を残業しようにも働ける時間には限度があり、残業した分をまとめて早上がりするのも簡単ではない。毎日少しずつなら調整できる、という考え方で作りました。</p>
+          <p class="card__meta">Flutterで作ったWebアプリ</p>
+          <p>勤怠の過不足を先読みして、毎日少しずつ調整できるようにするWebアプリです。足りない分を残業しようにも、働ける時間には限度があります。残業した分をまとめて早上がりするのも簡単ではありません。毎日少しずつなら調整できる、という考え方で作りました。</p>
         </div>
       </article>
     </div>
@@ -277,47 +332,16 @@
       <ul class="others__list">
         <li>
           <a href="https://umechanhika.github.io/helmforge/">HelmForge</a>
-          <span class="others__meta">2026 / Web</span>
-          <span class="others__desc">パーツを組み合わせてアバターを作り、PNG で書き出せます。外部のライブラリを使わず SVG で描画しました。</span>
-        </li>
-        <li>
-          <!-- TODO: ストアでの公開状況を未確認。リンク切れなら行ごと削除する -->
-          <a href="https://chromewebstore.google.com/detail/bpkdnakimcfcpklejapknaapjabbjnhk">評価額 隠すくん</a>
-          <span class="others__meta">2023 / Chrome 拡張機能</span>
-          <span class="others__desc">証券サイトの評価額を隠す拡張機能です。</span>
+          <span class="others__year">2026年</span>
+          <span class="others__plat">Web</span>
+          <span class="others__desc">パーツを組み合わせてアバターを作り、PNGで書き出せます。外部のライブラリを使わず、SVGで描画しました。</span>
         </li>
         <li>
           <a href="https://chromewebstore.google.com/detail/historium-browser-history/dklbojjfbmaonbdcgiabhfdindoppbko">Historium</a>
-          <span class="others__meta">2020 / Chrome 拡張機能</span>
-          <span class="others__desc">閲覧履歴をサイトごとのフォルダに分けて辿れる履歴マネージャーです。データは端末内にのみ保存します。</span>
+          <span class="others__year">2020年</span>
+          <span class="others__plat">Chrome拡張機能</span>
+          <span class="others__desc">閲覧履歴をサイトごとのフォルダに分けて辿れる履歴マネージャーです。データは端末内にのみ保存します。420ユーザーが使っています。</span>
         </li>
-        <li>
-          <span class="others__name">世田谷分別チェッカー</span>
-          <span class="others__meta">2020 / Google アシスタント — 提供終了</span>
-          <span class="others__desc">捨てたいものを話しかけると、世田谷区で何ゴミかを答えます。Google のサードパーティ向け機能の提供終了に伴い、公開を終了しました。</span>
-        </li>
-        <li>
-          <a href="https://play.google.com/store/apps/details?id=com.umehika.infinitecounter">InfiniteCounter</a>
-          <span class="others__meta">2019 / Android・iOS</span>
-          <span class="others__desc">10秒間のタップ回数を競うゲームです。世界ランキングを付けました。</span>
-        </li>
-        <li>
-          <a href="https://play.google.com/store/apps/details?id=com.umehika.happinessbank">HappinessBank</a>
-          <span class="others__meta">2018 / Android</span>
-          <span class="others__desc">日々の「よかったこと」を貯金するように記録するアプリです。</span>
-        </li>
-        <!-- TODO: Minorication と NUM は概要と公開状況が未確認。確認して概要を入れるか、行ごと削除する
-        <li>
-          <a href="https://play.google.com/store/apps/details?id=com.umehika.minorication">Minorication</a>
-          <span class="others__meta">2017 / Android</span>
-          <span class="others__desc"></span>
-        </li>
-        <li>
-          <a href="https://play.google.com/store/apps/details?id=jp.co.hitandblow">NUM</a>
-          <span class="others__meta">2017 / Android</span>
-          <span class="others__desc"></span>
-        </li>
-        -->
       </ul>
     </div>
   </div>
@@ -325,43 +349,54 @@
 
 <!-- 発信 -->
 <section class="section" id="writing">
-  <div class="wrap">
-    <p class="eyebrow">WRITING</p>
+  <div class="wrap wrap--route">
     <h2 class="section__title">発信</h2>
 
-    <a class="talk" id="talk" href="https://youtu.be/qgYkGWEXBG4">
-      <!-- TODO: assets/talk-droidkaigi.jpg（動画サムネイル）に差し替える -->
-      <div class="talk__shot ph" role="presentation"><span>動画サムネイル</span></div>
-      <div class="talk__body">
-        <p class="talk__label">DroidKaigi 2026</p>
-        <h3 class="talk__title">なぜエンジニアの意見は届かないのか</h3>
-        <p class="talk__sub">エンジニアがプロダクトの意思決定に影響を与えるための実践Tips</p>
-        <p class="talk__desc">技術的な正しさだけでは PdM は動けません。意見が通らないのは間違っているからではなく、ステークホルダーに説明できるロジックがないから。そのロジックをエンジニア側から設計する方法を話しました。</p>
-      </div>
-    </a>
-
-    <!-- TODO: 記事の個別リンクを足す。以下は URL が未確認のため、確認できたものから追加する
-         - 仕事は自分ひとりでやらない — PdM 経験から得た協働の3つの考え方（Zenn）
-         - ウェルスナビのモバイルチームのいい文化3選（Zenn）
-         - Google Play Console の時間指定公開のハマりポイント（Speaker Deck） -->
+    <ul class="writings">
+      <li>
+        <span class="writings__svc">Zenn</span>
+        <span class="writings__year">2025年</span>
+        <a href="https://zenn.dev/umechanhika/articles/07b9ca7c46344c">仕事は自分ひとりでやらない 〜PdM経験から得た協働の3つの考え方〜</a>
+      </li>
+      <li>
+        <span class="writings__svc">Zenn</span>
+        <span class="writings__year">2026年</span>
+        <a href="https://zenn.dev/umechanhika/articles/2e3b4bf9b552f7">ウェルスナビのモバイルチームのいい文化3選</a>
+      </li>
+      <li>
+        <span class="writings__svc">Speaker Deck</span>
+        <span class="writings__year"></span>
+        <a href="https://speakerdeck.com/umechanhika/uitesutochu-xin-zhe-falsetimuniuitesutozi-dong-hua-wodao-ru-sitahua">UIテスト初心者のチームにUIテスト自動化を導入した話</a>
+      </li>
+      <li>
+        <span class="writings__svc">Speaker Deck</span>
+        <span class="writings__year"></span>
+        <a href="https://speakerdeck.com/umechanhika/jenkins-plus-bitbucketdeapuriririsuwozi-dong-hua-sitemita">Jenkins + Bitbucketでアプリリリースを自動化してみた</a>
+      </li>
+    </ul>
 
     <div class="channels">
-      <a class="channel" href="https://zenn.dev/umechanhika"><span>Zenn</span></a>
-      <a class="channel" href="https://qiita.com/umechanhika"><span>Qiita</span></a>
-      <a class="channel" href="https://speakerdeck.com/umechanhika"><span>Speaker Deck</span></a>
-      <a class="channel" href="https://note.com/umechanhika"><span>note</span></a>
+      <a class="channel" href="https://zenn.dev/umechanhika">Zenn</a>
+      <a class="channel" href="https://qiita.com/umechanhika">Qiita</a>
+      <a class="channel" href="https://speakerdeck.com/umechanhika">Speaker Deck</a>
+      <a class="channel" href="https://note.com/umechanhika">note</a>
     </div>
   </div>
 </section>
 
 <!-- 連絡先 -->
 <section class="section section--contact" id="contact">
-  <div class="wrap contact">
-    <div>
-      <h2 class="section__title">連絡先</h2>
-      <p class="contact__text">X のダイレクトメッセージでご連絡ください。</p>
+  <div class="wrap wrap--route">
+    <h2 class="section__title">ご連絡</h2>
+
+    <div class="contact">
+      <p class="contact__text">エンジニア組織やプロダクトマネジメントの支援について、どのような状況かを伺うところから始めます。相談内容が固まっていなくても構いません。</p>
+      <div class="contact__actions">
+        <!-- TODO: 連絡用のメールアドレスを用意して、下のリンクを有効にする
+             <a class="btn btn--primary" href="mailto:（アドレス）">メールで相談する</a> -->
+        <a class="btn btn--primary" href="https://x.com/umechanhika">Xのダイレクトメッセージで相談する</a>
+      </div>
     </div>
-    <a class="btn btn--primary" href="https://x.com/umechanhika">X で連絡する</a>
   </div>
 </section>
 
@@ -375,7 +410,7 @@
       <li><a href="https://play.google.com/store/apps/dev?id=5250267109563010314">Google Play</a></li>
       <li><a href="https://pub.dev/packages/dotted_line">pub.dev</a></li>
     </ul>
-    <p class="site-foot__updated">最終更新: 2026年9月</p>
+    <p class="site-foot__updated">最終更新：2026年9月</p>
   </div>
 </footer>
 
