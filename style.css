@@ -48,22 +48,11 @@
   --gutter: clamp(20px, 5vw, 104px);
   --rail: clamp(22px, 2.6vw, 36px);
   --measure: 44rem;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #1a1510;
-    --card: #231d15;
-    --ink: #f3ece0;
-    --ink-2: #cfc5b3;
-    --muted: #9a8e7c;
-    --rule: #312a20;
-    --fill: #2c251a;
-    --ph: #2a2319;
-    --ph-ink: #817663;
-    --route: #72b98a;
-    --route-ink: #1a1510;
-  }
+  /* 配色はライトだけで組む。暖色の地色がこのサイトの前提なので、
+     OSのダーク設定でも切り替えない。スクロールバーやフォーム部品まで
+     ライトに揃えるため color-scheme も宣言する。 */
+  color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -465,6 +454,14 @@ a.ref:hover .ref__title { color: var(--route); }
 .site-foot__links a { color: var(--muted); text-decoration: none; }
 .site-foot__links a:hover { color: var(--ink); }
 .site-foot__updated { margin: 0; font-size: var(--t-label); color: var(--muted); }
+
+/* 目次。経路をたどり終えた先で、もう一度どこへでも行けるようにする。
+   ヘッダーのナビが隠れる幅でだけ出す。ページ内ナビはどの幅でも1つだけにする。 */
+.site-foot__index { display: none; }
+@media (max-width: 720px) {
+  .site-foot__index { display: flex; flex-direction: column; margin-bottom: var(--s4); font-size: var(--t-body); }
+  .site-foot__index a { padding-block: 10px; color: var(--ink); text-decoration: none; }
+}
 
 /* --- 画像プレースホルダ（差し替えたら不要） --- */
 
