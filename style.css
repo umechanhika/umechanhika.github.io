@@ -375,31 +375,6 @@ a.ref:hover .ref__title { color: var(--route); }
 
 @media (max-width: 720px) { .cards { grid-template-columns: minmax(0, 1fr); } }
 
-/* --- そのほかの作品 --- */
-
-.others { margin-top: var(--s4); }
-.others__head { margin: 0; font-size: var(--t-label); font-weight: 400; color: var(--muted); letter-spacing: 0.04em; }
-.others__list { list-style: none; margin: var(--s2) 0 0; padding: 0; }
-.others__list > li {
-  display: grid;
-  grid-template-columns: 11rem 5rem 8rem minmax(0, 1fr);
-  gap: var(--s1) var(--s3);
-  align-items: baseline;
-  padding: var(--s3) 0;
-  border-top: 1px solid var(--rule);
-}
-.others__list a { font-size: var(--t-body); text-decoration: none; }
-.others__list a:hover { text-decoration: underline; }
-.others__name { font-size: var(--t-body); color: var(--muted); }
-.others__year, .others__plat { font-size: var(--t-label); color: var(--muted); }
-.others__desc { font-size: var(--t-meta); line-height: 1.9; color: var(--ink-2); }
-.others__desc a { font-size: inherit; }
-
-@media (max-width: 860px) {
-  .others__list > li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
-  .others__year, .others__plat { display: inline; }
-}
-
 /* --- 記事・登壇の一覧 --- */
 
 .writings { list-style: none; margin: var(--s4) 0 0; padding: 0; max-width: 62rem; }
