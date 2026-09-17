@@ -13,17 +13,17 @@
 
 :root {
   /* 色 */
-  --paper: #eff1ee;
-  --card: #ffffff;
-  --ink: #14181a;
-  --ink-2: #3c4448;
-  --muted: #5c6661;
-  --rule: #d6dad5;
-  --fill: #e3e7e1;
-  --ph: #e0e4de;
-  --ph-ink: #8c958e;
-  --route: #0e6b4f;
-  --route-ink: #ffffff;
+  --paper: #f8f3ea;
+  --card: #fffdf6;
+  --ink: #201a13;
+  --ink-2: #4d443a;
+  --muted: #6f6353;
+  --rule: #e3dac8;
+  --fill: #efe7d6;
+  --ph: #ece4d2;
+  --ph-ink: #a29584;
+  --route: #2a6a45;
+  --route-ink: #fffdf6;
 
   /* 間隔 */
   --s1: 6px;
@@ -52,17 +52,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #121512;
-    --card: #191d19;
-    --ink: #edefea;
-    --ink-2: #c2c9bf;
-    --muted: #8a948b;
-    --rule: #262b26;
-    --fill: #22271f;
-    --ph: #20251f;
-    --ph-ink: #6d776e;
-    --route: #4fb08c;
-    --route-ink: #121512;
+    --paper: #1a1510;
+    --card: #231d15;
+    --ink: #f3ece0;
+    --ink-2: #cfc5b3;
+    --muted: #9a8e7c;
+    --rule: #312a20;
+    --fill: #2c251a;
+    --ph: #2a2319;
+    --ph-ink: #817663;
+    --route: #72b98a;
+    --route-ink: #1a1510;
   }
 }
 
@@ -81,9 +81,15 @@ body {
   line-height: 1.95;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* 行末に1文字だけ残さない */
+  line-break: strict;
+  text-wrap: pretty;
 }
 
 img { max-width: 100%; height: auto; display: block; }
+
+/* 見出しは文節で折り返す。本文に効かせると行長が不揃いになるため見出しだけに当てる */
+h1, h2, h3, .card__title, .hero__now { word-break: auto-phrase; }
 
 a { color: var(--route); }
 a:hover { text-decoration: none; }
@@ -170,8 +176,7 @@ a:hover { text-decoration: none; }
 /* --- ヒーロー --- */
 
 .hero { padding-block: var(--s6) var(--s6); }
-.hero__inner { display: flex; gap: var(--s5); align-items: flex-start; }
-.hero__body { flex-grow: 1; min-width: 0; }
+.hero__body { max-width: var(--measure); }
 
 .hero__lead {
   font-family: var(--serif);
@@ -186,35 +191,14 @@ a:hover { text-decoration: none; }
   text-wrap: pretty;
 }
 
-.hero__sub {
-  margin: var(--s3) 0 0;
-  font-size: var(--t-sub);
-  font-weight: 500;
-  line-height: 1.7;
-  max-width: 24em;
-}
+/* 意味の切れ目でだけ折り返す */
+.hero__lead span { display: inline-block; }
 .hero__name { margin: var(--s5) 0 0; font-size: var(--t-sub); font-weight: 500; }
 .hero__name span { color: var(--muted); font-size: var(--t-body); font-weight: 400; margin-left: var(--s2); }
 .hero__now { margin: var(--s1) 0 0; font-size: var(--t-body); color: var(--muted); }
 .hero__actions { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s4); }
 
-.hero__photos { display: flex; gap: var(--s2); flex-shrink: 0; }
-.hero__figure { margin: 0; text-align: center; }
-.hero__figure figcaption { margin-top: var(--s1); font-size: var(--t-label); color: var(--muted); }
-.hero__photo {
-  width: clamp(80px, 9.5vw, 120px);
-  height: auto;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--fill);
-}
-/* アイコンは全身のイラスト。切らずに収める。
-   透過 PNG の暗い部分が暗い地に溶けるため、地色は明るいまま固定する。 */
-.hero__photo--icon { object-fit: contain; background: #e9ede7; }
-
 @media (max-width: 720px) {
-  .hero__inner { flex-direction: column-reverse; align-items: flex-start; }
   .hero__lead { max-width: none; }
 }
 
@@ -266,24 +250,50 @@ a.ref:hover .ref__title { color: var(--route); }
 .ref__title { display: block; margin: var(--s1) 0 0; font-size: var(--t-body); font-weight: 500; }
 .ref__desc { display: block; margin: 2px 0 0; font-size: var(--t-meta); color: var(--muted); }
 /* ひとつの登壇に、動画と資料という2つの入口を置く */
-.ref__links { display: flex; flex-wrap: wrap; gap: var(--s3); margin: var(--s3) 0 0; font-size: var(--t-meta); }
+.ref__links,
+.card__links { display: flex; flex-wrap: wrap; gap: var(--s3); margin: var(--s3) 0 0; font-size: var(--t-meta); }
+/* リンクは色で示し、下線はホバー時だけ出す（サイト内の他のリンクと揃える） */
+.ref__links a,
+.card__links a { text-decoration: none; }
+.ref__links a:hover,
+.card__links a:hover { text-decoration: underline; }
+.ref--media { display: flex; gap: var(--s3); align-items: flex-start; }
+.ref__shot { display: block; width: 200px; aspect-ratio: 16 / 9; object-fit: cover; flex-shrink: 0; border: 1px solid var(--rule); }
+.ref__body { min-width: 0; }
 
-/* --- 受けられるご相談 --- */
+@media (max-width: 640px) {
+  .ref--media { flex-direction: column; }
+  .ref__shot { width: 100%; }
+}
 
-.offers {
+/* --- 考えていること --- */
+
+.points {
   list-style: none;
   margin: var(--s5) 0 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--s4);
+  /* 見出しと本文をそれぞれ 1 行にまとめ、行の高さを 3 列で共有する */
+  grid-template-rows: auto auto;
+  column-gap: var(--s4);
+  row-gap: 0;
 }
-.offer { border-top: 2px solid var(--route); padding-top: var(--s3); }
-.offer__title { margin: 0; font-size: var(--t-sub); font-weight: 700; line-height: 1.65; }
-.offer p { margin: var(--s2) 0 0; color: var(--ink-2); text-wrap: pretty; }
-.offers__note { margin: var(--s4) 0 0; font-size: var(--t-meta); color: var(--muted); max-width: var(--measure); }
+.point {
+  border-top: 2px solid var(--route);
+  padding-top: var(--s3);
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+}
+/* 見出しの行数が違っても本文の開始位置を揃える */
+.point__title { margin: 0; font-size: var(--t-sub); font-weight: 700; line-height: 1.65; }
+.point p { margin: var(--s2) 0 0; color: var(--ink-2); text-wrap: pretty; }
 
-@media (max-width: 860px) { .offers { grid-template-columns: minmax(0, 1fr); gap: var(--s5); } }
+@media (max-width: 860px) {
+  .points { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; row-gap: var(--s5); }
+  .point { display: block; }
+}
 
 /* --- 職務経歴 ---
    各社の行が経路上の駅になる。 */
@@ -327,6 +337,8 @@ a.ref:hover .ref__title { color: var(--route); }
 .job__body p { margin: 0 0 var(--s2); color: var(--ink-2); text-wrap: pretty; }
 .job__body p:last-child { margin-bottom: 0; }
 .job__lead { margin-top: var(--s3); }
+/* .job__body p が margin-top:0 を上書きするため、箇条書きの直後だけ間隔を持たせる */
+.bullets + .job__lead { margin-top: var(--s3); }
 
 @media (max-width: 720px) {
   .job { flex-direction: column; gap: var(--s2); }
@@ -338,6 +350,8 @@ a.ref:hover .ref__title { color: var(--route); }
 .bullets { margin: 0; padding-left: 1.2em; color: var(--ink-2); }
 .bullets li { margin-bottom: var(--s1); }
 .bullets li:last-child { margin-bottom: 0; }
+.bullets a { text-decoration: none; }
+.bullets a:hover { text-decoration: underline; }
 
 /* タグは押せない＝塗り */
 .tags { list-style: none; margin: var(--s3) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s1); }
@@ -356,7 +370,7 @@ a.ref:hover .ref__title { color: var(--route); }
 .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s4); margin-top: var(--s5); }
 .card { border: 1px solid var(--rule); background: var(--card); display: flex; flex-direction: column; }
 .card:hover { border-color: var(--route); }
-.card__shot { aspect-ratio: 16 / 9; width: 100%; }
+.card__shot { display: block; width: 100%; aspect-ratio: 1200 / 630; object-fit: cover; background: var(--fill); }
 .card__body { padding: var(--s4); }
 .card__title { margin: 0; font-size: var(--t-sub); font-weight: 700; line-height: 1.65; }
 .card__title a { color: var(--ink); text-decoration: none; }
@@ -390,36 +404,11 @@ a.ref:hover .ref__title { color: var(--route); }
 .others__name { font-size: var(--t-body); color: var(--muted); }
 .others__year, .others__plat { font-size: var(--t-label); color: var(--muted); }
 .others__desc { font-size: var(--t-meta); line-height: 1.9; color: var(--ink-2); }
+.others__desc a { font-size: inherit; }
 
 @media (max-width: 860px) {
   .others__list > li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .others__year, .others__plat { display: inline; }
-}
-
-/* --- 登壇（押せる＝枠線） --- */
-
-.talk {
-  display: flex;
-  gap: var(--s4);
-  border: 1px solid var(--rule);
-  background: var(--card);
-  padding: var(--s4);
-  margin-top: var(--s5);
-  max-width: 62rem;
-  text-decoration: none;
-  color: var(--ink);
-}
-.talk:hover { border-color: var(--route); }
-.talk__shot { width: 300px; aspect-ratio: 16 / 9; flex-shrink: 0; }
-.talk__body { min-width: 0; }
-.talk__label { margin: 0; font-size: var(--t-meta); color: var(--route); font-weight: 500; }
-.talk__title { margin: var(--s1) 0 0; font-size: var(--t-sub); font-weight: 700; line-height: 1.65; }
-.talk__sub { margin: 2px 0 0; color: var(--ink-2); }
-.talk__desc { margin: var(--s2) 0 0; color: var(--ink-2); text-wrap: pretty; }
-
-@media (max-width: 720px) {
-  .talk { flex-direction: column; }
-  .talk__shot { width: 100%; }
 }
 
 /* --- 記事・登壇の一覧 --- */
@@ -456,11 +445,12 @@ a.ref:hover .ref__title { color: var(--route); }
   text-decoration: none;
 }
 .channel:hover { border-color: var(--ink); color: var(--ink); }
+.channels__lead { margin: var(--s4) 0 0; font-size: var(--t-meta); color: var(--muted); }
+.channels__lead + .channels { margin-top: var(--s2); }
 
 /* --- 連絡先 --- */
 
 .contact { margin-top: var(--s5); max-width: var(--measure); }
-.contact__text { margin: 0; color: var(--ink-2); }
 .contact__actions { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s4); }
 
 /* --- フッター --- */

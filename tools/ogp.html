@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>OGP画像の版下</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap">
+<style>
+/* 1200×630 の版下。style.css と同じ色・書体を手で写している。
+   色を変えたときは style.css と両方直す。
+
+   書き出し（リポジトリ直下で python3 -m http.server 8765 を動かした状態で）:
+   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+     --headless --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
+     --window-size=1200,630 --virtual-time-budget=8000 \
+     --screenshot=assets/ogp.png http://localhost:8765/tools/ogp.html */
+:root {
+  --paper: #f8f3ea;
+  --ink: #201a13;
+  --ink-2: #4d443a;
+  --muted: #6f6353;
+  --route: #2a6a45;
+  --serif: "Shippori Mincho", "Hiragino Mincho ProN", serif;
+  --sans: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 1200px;
+  height: 630px;
+  background: var(--paper);
+  font-family: var(--sans);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+/* サイト左端を走る破線。線は経路を表す。装飾として引かない。 */
+.rail {
+  width: 0;
+  height: 100%;
+  margin-left: 104px;
+  border-left: 2px dashed var(--route);
+  opacity: .55;
+}
+.body { padding-left: 56px; }
+.name {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 100px;
+  line-height: 1.2;
+  letter-spacing: .06em;
+  color: var(--ink);
+}
+.role {
+  margin-top: 20px;
+  font-size: 38px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  color: var(--ink-2);
+}
+.fact {
+  margin-top: 46px;
+  font-size: 29px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+  <div class="rail"></div>
+  <div class="body">
+    <p class="name">梅津 光</p>
+    <p class="role">モバイルアプリエンジニア</p>
+    <p class="fact">2016年からアプリの開発に携わっています。<br>うち6年はプロダクトマネージャーでした。</p>
+  </div>
+</body>
+</html>
