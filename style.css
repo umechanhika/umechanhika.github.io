@@ -180,11 +180,8 @@ a:hover { text-decoration: none; }
   text-wrap: pretty;
 }
 
-/* 意味の切れ目でだけ折り返す */
-.hero__lead span { display: inline-block; }
-.hero__name { margin: var(--s5) 0 0; font-size: var(--t-sub); font-weight: 500; }
-.hero__name span { color: var(--muted); font-size: var(--t-body); font-weight: 400; margin-left: var(--s2); }
 .hero__now { margin: var(--s1) 0 0; font-size: var(--t-body); color: var(--muted); }
+.hero__lead + .hero__now { margin-top: var(--s4); }
 
 @media (max-width: 720px) {
   .hero__lead { max-width: none; }
@@ -252,35 +249,6 @@ a.ref:hover .ref__title { color: var(--route); }
 @media (max-width: 640px) {
   .ref--media { flex-direction: column; }
   .ref__shot { width: 100%; }
-}
-
-/* --- 考えていること --- */
-
-.points {
-  list-style: none;
-  margin: var(--s5) 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  /* 見出しと本文をそれぞれ 1 行にまとめ、行の高さを 3 列で共有する */
-  grid-template-rows: auto auto;
-  column-gap: var(--s4);
-  row-gap: 0;
-}
-.point {
-  border-top: 2px solid var(--route);
-  padding-top: var(--s3);
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-row: span 2;
-}
-/* 見出しの行数が違っても本文の開始位置を揃える */
-.point__title { margin: 0; font-size: var(--t-sub); font-weight: 700; line-height: 1.65; }
-.point p { margin: var(--s2) 0 0; color: var(--ink-2); text-wrap: pretty; }
-
-@media (max-width: 860px) {
-  .points { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; row-gap: var(--s5); }
-  .point { display: block; }
 }
 
 /* --- 職務経歴 ---
