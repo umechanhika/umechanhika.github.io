@@ -338,7 +338,6 @@ a.ref:hover .ref__title { color: var(--route); }
 .stats div { margin: 0; }
 .stats dt { font-size: var(--t-label); color: var(--muted); }
 .stats dd { margin: 0; font-size: 26px; font-weight: 700; color: var(--route); line-height: 1.4; }
-.card__foot { margin: var(--s3) 0 0; font-size: var(--t-label); color: var(--muted); line-height: 1.8; }
 
 @media (max-width: 720px) { .cards { grid-template-columns: minmax(0, 1fr); } }
 
