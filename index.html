@@ -69,15 +69,47 @@
 
 <header class="site-head">
   <div class="wrap site-head__inner">
-    <a class="site-head__name" href="#top">umechanhika</a>
-    <nav class="site-nav" aria-label="ページ内">
-      <a href="#about">自己紹介</a>
-      <a href="#experience">職務経歴</a>
-      <a href="#works">つくったもの</a>
-      <a href="#contact">ご連絡</a>
+    <!-- 経路図。縦の経路と同じ駅を横に並べ、読んでいる位置を現在地として示す。
+         縦スクロールで現在地が進み、経路図を横にドラッグすると本文が動く。 -->
+    <nav class="route-map" aria-label="ページ内">
+      <div class="route-map__viewport">
+        <ol class="route-map__track">
+          <li class="route-map__station"><a href="#top"><span class="route-map__dot"></span><span class="route-map__name">はじめに</span></a></li>
+          <li class="route-map__station"><a href="#about"><span class="route-map__dot"></span><span class="route-map__name">自己紹介</span></a></li>
+          <li class="route-map__station"><a href="#experience"><span class="route-map__dot"></span><span class="route-map__name">職務経歴</span></a></li>
+          <li class="route-map__station"><a href="#skills"><span class="route-map__dot"></span><span class="route-map__name">できること</span></a></li>
+          <li class="route-map__station"><a href="#works"><span class="route-map__dot"></span><span class="route-map__name">つくったもの</span></a></li>
+          <li class="route-map__station"><a href="#writing"><span class="route-map__dot"></span><span class="route-map__name">発信</span></a></li>
+          <li class="route-map__station"><a href="#contact"><span class="route-map__dot"></span><span class="route-map__name">ご連絡</span></a></li>
+        </ol>
+        <!-- 現在地。経路の上を走るバス -->
+        <span class="route-map__here" aria-hidden="true">
+          <svg class="route-map__bus" viewBox="0 0 26 16" width="26" height="16">
+            <path d="M2 3.5A2.5 2.5 0 0 1 4.5 1h15.3c.8 0 1.6.4 2.1 1l2.6 3.4c.3.4.5 1 .5 1.5V11a1.5 1.5 0 0 1-1.5 1.5H2.5A1.5 1.5 0 0 1 1 11V4.5Z" fill="currentColor"/>
+            <rect x="4" y="3.5" width="4.5" height="4" rx="0.8" fill="var(--paper)"/>
+            <rect x="10" y="3.5" width="4.5" height="4" rx="0.8" fill="var(--paper)"/>
+            <path d="M16 3.5h3.6a1 1 0 0 1 .8.4l2.4 3.1a.3.3 0 0 1-.2.5H16Z" fill="var(--paper)"/>
+            <circle cx="7" cy="13" r="2.4" fill="currentColor" stroke="var(--paper)" stroke-width="1.2"/>
+            <circle cx="19" cy="13" r="2.4" fill="currentColor" stroke="var(--paper)" stroke-width="1.2"/>
+          </svg>
+        </span>
+      </div>
     </nav>
   </div>
 </header>
+
+<!-- 縦の経路を走るバス。正面から見た姿で、ページの先頭では最初の駅、末尾では最後の駅に乗り、
+     読み進めるにつれて経路の上を下へ進む。位置は route-map.js が更新する -->
+<span class="route-bus" aria-hidden="true">
+  <svg viewBox="0 0 18 18" width="18" height="18">
+    <path d="M3 2.5A1.5 1.5 0 0 1 4.5 1h9A1.5 1.5 0 0 1 15 2.5v12a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 14.5Z" fill="currentColor"/>
+    <rect x="4.5" y="3" width="9" height="5.5" rx="0.8" fill="var(--paper)"/>
+    <circle cx="6" cy="12" r="1.4" fill="var(--paper)"/>
+    <circle cx="12" cy="12" r="1.4" fill="var(--paper)"/>
+    <rect x="4" y="15.5" width="3" height="2" rx="0.5" fill="currentColor"/>
+    <rect x="11" y="15.5" width="3" height="2" rx="0.5" fill="currentColor"/>
+  </svg>
+</span>
 
 <main id="main">
 
@@ -412,5 +444,6 @@
   </div>
 </footer>
 
+<script src="route-map.js" defer></script>
 </body>
 </html>

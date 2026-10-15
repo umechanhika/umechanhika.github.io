@@ -141,26 +141,165 @@ a:hover { text-decoration: none; }
 /* --- ヘッダー --- */
 
 .site-head {
-  border-bottom: 1px solid var(--rule);
+  --head-pad: 18px;
+  /* 経路図の線の y（ヘッダーの余白を除いた位置）。
+     バス（高さ16px、車輪の中心が下から3px）が線の上に乗って収まる位置 */
+  --line-y: 16px;
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
-  backdrop-filter: blur(8px);
+  background: var(--paper);
   z-index: 5;
 }
+/* ヘッダーの下端は線で区切らず、紙の色を本文へ溶かす */
+.site-head::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to bottom, var(--paper), transparent);
+  pointer-events: none;
+}
 .site-head__inner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--s3);
-  padding-block: 18px;
+  padding-block: var(--head-pad);
 }
-.site-head__name { font-size: var(--t-body); letter-spacing: 0.06em; color: var(--ink); text-decoration: none; }
-.site-nav { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s3); font-size: var(--t-meta); }
-.site-nav a { color: var(--muted); text-decoration: none; }
-.site-nav a:hover { color: var(--ink); }
+/* 縦の経路を走るバス。画面に対して固定し、JS が --rail-x と --bus-y を更新する。
+   同期スクリプトが動いていないときは出さない */
+.route-bus {
+  display: none;
+  position: fixed;
+  left: var(--rail-x, 0px);
+  top: var(--bus-y, 0px);
+  z-index: 4;
+  width: 18px;
+  height: 18px;
+  color: var(--route);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.route-sync .route-bus { display: block; }
+.route-bus svg { display: block; }
 
-@media (max-width: 720px) { .site-nav { display: none; } }
+/* --- 経路図 ------------------------------------------------------
+   縦の経路を横に写した地図。駅はセクション見出しと同じ。
+   起点の駅は本文の縦の経路と同じ x に置き、そこから横へ分岐して見せる。
+   横の破線も経路なので、装飾ではない。
+   現在地（塗り）は押せない。駅（枠線）は押せる。 */
+
+.route-map { flex: 1 1 auto; min-width: 0; max-width: 640px; }
+.route-map__viewport {
+  --dot: 8px;
+  /* 右の余白。終点の駅名を中央揃えにしたときの右半分と、終点に着いたバスの右半分が枠に収まる幅 */
+  --pad-right: 24px;
+  /* 左は画面の端まで広げ、起点の駅の中心を縦の経路（幅 2px の中心）に重ねる。
+     起点の駅名が経路の左へはみ出しても切れないようにするため */
+  --pad-left: calc(var(--gutter) + 1px);
+  position: relative;
+  margin-left: calc(-1 * var(--gutter));
+  overflow: hidden;
+  /* 横のドラッグを経路図が受け取る。ブラウザの横スクロールには渡さない */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.route-map__track {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  min-width: 560px;
+  /* 上: 駅の中心が --line-y に来るぶんだけ空ける。
+     左右: 両端の駅に着いたバスが枠に収まるぶんだけ空ける */
+  padding: calc(var(--line-y) - var(--dot) / 2) var(--pad-right) 0 var(--pad-left);
+}
+/* 横の経路。最初の駅と最後の駅の中心を結ぶ */
+.route-map__track::before {
+  content: "";
+  position: absolute;
+  top: var(--line-y);
+  left: var(--pad-left);
+  right: var(--pad-right);
+  height: 2px;
+  background: repeating-linear-gradient(to right, var(--route) 0 4px, transparent 4px 9px);
+  opacity: 0.55;
+}
+/* 駅は幅 0 の点として等間隔に置き、丸の中心をその点に合わせる。名前は丸を中心に広げる */
+.route-map__station { flex: 0 0 auto; width: 0; }
+.route-map__station a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: max-content;
+  transform: translateX(-50%);
+  font-size: var(--t-label);
+  line-height: 1.4;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  padding-bottom: 2px;
+}
+/* 起点の駅名は、画面の左端からはみ出す分だけ右へ寄せる（余白が狭い画面向け） */
+.route-map__station:first-child .route-map__name { transform: translateX(max(0px, calc(50% - var(--gutter) - 1px))); }
+.route-map__name { padding-inline: 3px; }
+.route-map__dot {
+  position: relative;
+  z-index: 1;
+  width: var(--dot);
+  height: var(--dot);
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid var(--route);
+}
+.route-map__station a:hover { color: var(--ink); }
+.route-map__station.is-current a { color: var(--ink); font-weight: 700; }
+
+/* 現在地のバス。JS が --x を駅の中心座標に合わせて更新する。
+   車輪の中心（svg の y=13）が線に乗るよう、線から 13px 上に置く */
+.route-map__here {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--line-y) - 13px);
+  left: var(--x, var(--pad-left));
+  width: 26px;
+  height: 16px;
+  color: var(--route);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.route-map__bus { display: block; }
+/* 上へ戻るときは進行方向を反転する */
+.route-map__here.is-back .route-map__bus { transform: scaleX(-1); }
+
+/* 読んでいるセクション以外は文字を薄くする。
+   同期スクリプトが動いているときだけ効かせ、JS 無しでは全文を通常の濃さで出す */
+.route-sync .hero > .wrap,
+.route-sync .section > .wrap { transition: opacity 0.35s ease; }
+.route-sync .hero:not(.is-current) > .wrap,
+.route-sync .section:not(.is-current) > .wrap { opacity: 0.55; }
+@media (prefers-reduced-motion: reduce) {
+  .route-sync .hero > .wrap,
+  .route-sync .section > .wrap { transition: none; }
+}
+
+/* 駅へ飛ぶとき、固定ヘッダーの裏に見出しが潜らないようにする。
+   ヘッダーの高さは JS が --head-h に入れる */
+.hero, .section { scroll-margin-top: var(--head-h, 0px); }
+.route-map__viewport { cursor: grab; }
+.route-map__viewport.is-dragging { cursor: grabbing; }
+
+@media (max-width: 720px) {
+  .site-head { --head-pad: 14px; }
+  .route-map { max-width: none; }
+}
 
 /* --- ヒーロー --- */
 
