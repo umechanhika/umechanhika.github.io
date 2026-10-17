@@ -13,7 +13,10 @@ GitHub Pages が `master` ブランチのルートをそのまま配信します
 | `route-map.js` | ヘッダーの経路図と本文のスクロールを同期します |
 | `assets/` | 画像 |
 | `tools/ogp.html` | OGP 画像の版下 |
-
+| `robots.txt` | クローラー向けの許可設定とサイトマップの場所 |
+| `sitemap.xml` | 検索エンジン向けのサイトマップ。ページを増やしたら追記します |
+| `CNAME` | GitHub Pages のカスタムドメイン設定 |
+| `app-ads.txt` | AdMob の広告枠所有者を宣言するファイル |
 ## ローカルで確認する
 
 ```
