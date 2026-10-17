@@ -1,6 +1,6 @@
-# umechanhika.github.io
+# umechanhika.com
 
-梅津 光のポートフォリオサイトです。<https://umechanhika.github.io/>
+梅津 光のポートフォリオサイトです。<https://umechanhika.com/>
 
 GitHub Pages が `master` ブランチのルートをそのまま配信します。ビルドはありません。
 
