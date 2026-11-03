@@ -1,16 +1,16 @@
 /* テラリアモード。ページの末尾まで読んだ人へのおまけ。
 
-   末尾の「テラリアモードで遊ぶ」を押すと、ドット絵のキャラがページの一番下に現れる。
-   矢印キー（スマホは画面左のスティック）で歩き、上でジェットパックを噴かして飛ぶ。
-   Space かクリック（スマホは画面右のボタン）でレーザーを連射し、当たった掲載情報を壊す。
+   末尾の「テラリアモードで遊ぶ」を押すと、今見えている画面がそのまま闘技場になり、
+   サイト主のアイコンをドットに起こしたキャラが地面に立つ。左右から跳ねて来るスライムを
+   避けながら戦う。射撃は自動で、向いている側のいちばん近いスライムを狙って連射する。
+   矢印キー（スマホはスティック）で移動、上で跳び、押し続けると燃料のある間だけ飛ぶ。
+   スライムに触れるとハートが減り、3 つ失うと終わり。得点と自己ベストを出して、すぐ再挑戦できる。
 
-   壊すのは見た目だけ。要素に tr-gone を付けて visibility: hidden にするので
-   レイアウトは崩れず、やめたときに全部元に戻す。本文のマークアップには書き込まない。
+   外れたレーザーは掲載情報に当たって壊す。壊すのは見た目だけで、要素に tr-gone を付けて
+   visibility: hidden にするのでレイアウトは崩れず、再挑戦とやめるときに全部元に戻す。
 
-   座標はすべて文書座標（画面座標に scrollY を足した値）で持つ。キャラを追って
-   ページをスクロールし、画面に固定した canvas にキャラ・レーザー・破片を描く。
-   壊せる要素の矩形は開始時と画面サイズ変更時に測る。壊しても visibility しか
-   変えないので、途中で測り直す必要はない。 */
+   座標はすべて文書座標（画面座標に scrollY を足した値）で持つ。ページはスクロールさせず、
+   画面に固定した canvas に地面・スライム・キャラ・レーザー・破片を描く。 */
 (function () {
   'use strict';
 
@@ -168,7 +168,8 @@
       var leaf = {
         el: el,
         x: r.x, y: r.y, w: r.w, h: r.h,
-        hp: Math.max(2, Math.min(40, Math.round(r.w * r.h / 7000))),
+        hp: 0,
+        maxHp: Math.max(2, Math.min(40, Math.round(r.w * r.h / 7000))),
         alive: true,
         platform: el.matches(PLATFORM_LEAF),
         colors: isImg ? imageColors(el) : el.matches('.tags li, a.channel, a.btn') ? FRAME_COLORS : TEXT_COLORS,
@@ -194,6 +195,7 @@
         leaf.box = boxes[idx];
         boxes[idx].leaves.push(leaf);
       }
+      leaf.hp = leaf.maxHp;
       leaves.push(leaf);
     }
     return { leaves: leaves, boxes: boxes };
@@ -262,9 +264,57 @@
     pad.addEventListener('pointercancel', release);
   }
 
+  /* --- スライム ---------------------------------------------------
+     テラリアのスライムと同じで、地面で少し休んでからキャラへ向かって跳ねる。
+     大きさはマス数。速さ・跳ぶ高さ・休む時間・体力・倒した点が種類で違う。 */
+  var SLIME_TYPES = {
+    green: { cw: 10, ch: 7, hp: 3, speed: 120, jump: 600, rest: 0.55, points: 10, body: '#5db13e', light: '#a3e27f', eye: '#1d3a12' },
+    blue: { cw: 12, ch: 8, hp: 6, speed: 160, jump: 660, rest: 0.42, points: 20, body: '#3d7ed6', light: '#9cc3f2', eye: '#122a55' },
+    red: { cw: 14, ch: 10, hp: 10, speed: 185, jump: 740, rest: 0.32, points: 40, body: '#d2473a', light: '#f2a497', eye: '#4a1410' }
+  };
+
+  /* n 番目のウェーブの構成。数と速さが少しずつ増え、3 から青、5 から赤が混ざる */
+  function waveSpec(n) {
+    return {
+      count: Math.min(20, 3 + 2 * (n - 1)),
+      interval: Math.max(0.5, 1.6 - 0.12 * (n - 1)),
+      speed: 1 + 0.07 * (n - 1),
+      pick: function () {
+        var r = Math.random();
+        if (n >= 5 && r < 0.2) return 'red';
+        if (n >= 3 && r < 0.5) return 'blue';
+        return 'green';
+      }
+    };
+  }
+
+  /* 自己ベスト。端末に残す。プライベートブラウズなどで保存できない環境では 0 のまま扱う */
+  var BEST_KEY = 'terraria-mode.best';
+  function readBest() {
+    try {
+      return Number(localStorage.getItem(BEST_KEY)) || 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+  function writeBest(v) {
+    try {
+      localStorage.setItem(BEST_KEY, String(v));
+    } catch (e) {
+      /* 保存できない環境。画面の表示は今回の値で続ける */
+    }
+  }
+
+  /* ドット絵のハート。HUD の残り体力に使う */
+  var HEART_SVG = '<svg viewBox="0 0 7 6" width="14" height="12" aria-hidden="true" shape-rendering="crispEdges">' +
+    '<rect x="1" y="0" width="2" height="1"/><rect x="4" y="0" width="2" height="1"/>' +
+    '<rect x="0" y="1" width="7" height="2"/><rect x="1" y="3" width="5" height="1"/>' +
+    '<rect x="2" y="4" width="3" height="1"/><rect x="3" y="5" width="1" height="1"/></svg>';
+
   /* --- ゲーム本体 --- */
 
   var game = null;
+  var HEARTS = 3;
 
   function start() {
     if (game) return;
@@ -276,44 +326,72 @@
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     root.classList.add('tr-playing');
 
+    /* --- 画面の部品を組む --- */
+
     var canvas = el('canvas', 'tr-canvas');
     canvas.setAttribute('aria-hidden', 'true');
     var ui = el('div', 'tr-ui' + (coarse ? ' is-touch' : ''));
+
     var hud = el('div', 'tr-hud');
-    var count = el('span', 'tr-count');
+    var hearts = el('div', 'tr-hearts');
+    hearts.setAttribute('aria-label', '残り体力');
+    var heartEls = [];
+    for (var hi = 0; hi < HEARTS; hi++) {
+      var heart = el('span', 'tr-heart');
+      heart.innerHTML = HEART_SVG;
+      hearts.appendChild(heart);
+      heartEls.push(heart);
+    }
+    var fuel = el('div', 'tr-fuel');
+    var fuelBar = el('span', 'tr-fuel__bar');
+    fuel.appendChild(fuelBar);
+    var waveEl = el('span', 'tr-stat');
+    var scoreEl = el('span', 'tr-stat');
+    var bestEl = el('span', 'tr-stat');
     var quit = el('button', 'tr-quit', 'やめる');
     quit.type = 'button';
-    hud.appendChild(count);
+    hud.appendChild(hearts);
+    hud.appendChild(fuel);
+    hud.appendChild(waveEl);
+    hud.appendChild(scoreEl);
+    hud.appendChild(bestEl);
     hud.appendChild(quit);
+
     var help = el('p', 'tr-help', coarse
-      ? '左のスティックで移動、上に倒すとジェットパック。右のボタンで射撃、ボタンを引きずると狙う向きが変わります。壊したものは、やめると元に戻ります。'
-      : '← → で移動、↑ でジェットパック、Space かクリックで射撃。狙いはマウスの位置です。Esc でやめると、壊したものは元に戻ります。');
+      ? 'スティックで移動、上に倒すとジャンプ。倒し続けると飛びます。画面をタップしても跳べます。射撃は自動です。'
+      : '← → で移動、↑ か Space でジャンプ。押し続けると飛びます。射撃は自動です。Esc でやめます。');
+
     var pad = el('div', 'tr-pad');
     var stick = el('div', 'tr-stick');
     stick.setAttribute('aria-label', '移動スティック');
     var stickKnob = el('span', 'tr-knob');
     stick.appendChild(stickKnob);
-    var fire = el('div', 'tr-fire');
-    fire.setAttribute('aria-label', '射撃ボタン');
-    var fireKnob = el('span', 'tr-knob', '射撃');
-    fire.appendChild(fireKnob);
     pad.appendChild(stick);
-    pad.appendChild(fire);
-    var done = el('div', 'tr-done');
-    done.hidden = true;
-    done.appendChild(el('p', null, 'ぜんぶ壊しました。'));
-    var restore = el('button', 'tr-restore', '元に戻す');
-    restore.type = 'button';
-    done.appendChild(restore);
+
+    var banner = el('p', 'tr-banner');
+
+    var over = el('div', 'tr-over');
+    over.hidden = true;
+    var overTitle = el('p', 'tr-over__title', 'スライムにやられました');
+    var overScore = el('p', 'tr-over__score');
+    var overBest = el('p', 'tr-over__best');
+    var overActions = el('div', 'tr-over__actions');
+    var retry = el('button', 'tr-retry', coarse ? 'もう一回' : 'もう一回（Space）');
+    retry.type = 'button';
+    var overQuit = el('button', 'tr-quit', 'やめる');
+    overQuit.type = 'button';
+    overActions.appendChild(retry);
+    overActions.appendChild(overQuit);
+    over.appendChild(overTitle);
+    over.appendChild(overScore);
+    over.appendChild(overBest);
+    over.appendChild(overActions);
+
     ui.appendChild(hud);
     ui.appendChild(help);
     ui.appendChild(pad);
-    ui.appendChild(done);
-    /* 地面。ページの下に土の層ぶんの余白を足し、キャラをその上に立たせる。
-       画面の端に立つと埋め込みやブラウザの下端のバーに脚が隠れるため */
-    var ground = el('div', 'tr-ground');
-    ground.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(ground);
+    ui.appendChild(banner);
+    ui.appendChild(over);
     document.body.appendChild(canvas);
     document.body.appendChild(ui);
 
@@ -326,18 +404,27 @@
     }
     sizeCanvas();
 
-    /* overflow: hidden でスクロールバーが消えて幅が変わった後に測る */
+    /* --- 闘技場 ---------------------------------------------------
+       今見えている画面がそのまま闘技場。ページはスクロールさせない。
+       下の 22% は地面で、その上端が床。壊せるのは画面に入っている要素だけ。 */
     var world = collectTargets();
-    var total = world.leaves.length;
-    var destroyed = 0;
-    var groundH = 0;
-    var floorY = 0;
-    var docW = root.scrollWidth;
-    function measureGround() {
-      groundH = ground.offsetHeight;
-      floorY = root.scrollHeight - groundH;
+    var arena = { left: 0, top: 0, width: 0, height: 0, floorY: 0, groundH: 0 };
+    var near = [];
+    function measureArena() {
+      arena.left = window.scrollX;
+      arena.top = window.scrollY;
+      arena.width = window.innerWidth;
+      arena.height = window.innerHeight;
+      arena.groundH = Math.round(window.innerHeight * 0.22);
+      arena.floorY = arena.top + arena.height - arena.groundH;
+      near = world.leaves.filter(function (t) {
+        return t.x < arena.left + arena.width && t.x + t.w > arena.left &&
+          t.y < arena.floorY && t.y + t.h > arena.top;
+      });
     }
-    measureGround();
+    measureArena();
+
+    /* --- 状態 --- */
 
     var player = {
       w: SPRITE_W * scale,
@@ -346,87 +433,117 @@
       facing: 1,
       onGround: false,
       thrusting: false,
+      fuel: 1,
+      hearts: HEARTS,
+      invUntil: 0,
+      dead: false,
       walkT: 0,
-      walkFrame: 0
+      walkFrame: 0,
+      gunAngle: 0
     };
-    player.x = window.scrollX + window.innerWidth / 2 - player.w / 2;
-    player.y = floorY - player.h;
-
-    var keys = { left: false, right: false, up: false, down: false, fire: false };
+    var FUEL_SECONDS = 1.0;
+    var keys = { left: false, right: false, jump: false };
     var stickV = { x: 0, y: 0 };
     var stickOn = false;
-    var padFire = false;
-    var padAim = null;
-    var mouse = null;
-    var mouseFire = false;
-    var aimMode = 'keys';
-    var aim = { x: 1, y: 0 };
+    var tapJump = false;
+    var jumpWasDown = false;
+    var slimes = [];
     var lasers = [];
     var particles = [];
     var flashing = [];
     var shotCooldown = 0;
     var muzzleFlash = 0;
-    var SHOT_INTERVAL = 0.07;
+    var SHOT_INTERVAL = 0.12;
+    var state = 'play';
+    var deadTimer = 0;
+    var wave = 0;
+    var spec = null;
+    var toSpawn = 0;
+    var spawnTimer = 0;
+    var waveGap = 0.6;
+    var score = 0;
+    var destroyed = 0;
+    var best = readBest();
+    var bannerTimer = 0;
+    var runStart = performance.now();
     var helpTimer = setTimeout(function () { help.classList.add('is-faded'); }, 9000);
 
-    function updateCount() {
-      count.textContent = 'こわした ' + destroyed + ' / ' + total;
+    function resetPlayer() {
+      player.x = arena.left + arena.width / 2 - player.w / 2;
+      player.y = arena.floorY - player.h;
+      player.vx = 0;
+      player.vy = 0;
+      player.facing = 1;
+      player.onGround = true;
+      player.fuel = 1;
+      player.hearts = HEARTS;
+      player.invUntil = 0;
+      player.dead = false;
     }
-    updateCount();
+    resetPlayer();
+
+    function updateHud() {
+      heartEls.forEach(function (h, i) { h.classList.toggle('is-lost', i >= player.hearts); });
+      waveEl.textContent = 'WAVE ' + Math.max(1, wave);
+      scoreEl.textContent = 'スコア ' + score;
+      bestEl.textContent = 'ベスト ' + best;
+    }
+    updateHud();
+
+    function showBanner(text) {
+      banner.textContent = text;
+      banner.classList.add('is-shown');
+      bannerTimer = 1.4;
+    }
 
     /* --- 入力 --- */
 
     var KEYS = {
-      ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
-      a: 'left', d: 'right', w: 'up', s: 'down',
-      ' ': 'fire', z: 'fire', x: 'fire'
+      ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'jump', ' ': 'jump',
+      a: 'left', d: 'right', w: 'jump'
     };
     function onKey(e, down) {
       if (e.key === 'Escape') {
         if (down) stop();
         return;
       }
+      if (state === 'over' && down && (e.key === ' ' || e.key === 'Enter')) {
+        e.preventDefault();
+        restart();
+        return;
+      }
       var name = KEYS[e.key.length === 1 ? e.key.toLowerCase() : e.key];
       if (!name) return;
       e.preventDefault();
       keys[name] = down;
-      if (down && name !== 'fire') aimMode = 'keys';
+      if (down) help.classList.add('is-faded');
     }
     function onKeyDown(e) { onKey(e, true); }
     function onKeyUp(e) { onKey(e, false); }
-    function onPointerMove(e) {
-      if (e.pointerType === 'touch') return;
-      mouse = { x: e.clientX, y: e.clientY };
-      aimMode = 'mouse';
-    }
+    /* 闘技場のタップ・クリックはジャンプ。押している間は飛ぶ */
     function onPointerDown(e) {
-      if (e.pointerType === 'touch' || e.button !== 0) return;
+      if (e.button !== 0) return;
       e.preventDefault();
-      onPointerMove(e);
-      mouseFire = true;
+      tapJump = true;
+      help.classList.add('is-faded');
     }
-    function onPointerUp() { mouseFire = false; }
+    function onPointerUp() { tapJump = false; }
     function prevent(e) { e.preventDefault(); }
 
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
-    canvas.addEventListener('pointermove', onPointerMove);
     canvas.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerUp);
     canvas.addEventListener('contextmenu', prevent);
     quit.addEventListener('click', stop);
-    restore.addEventListener('click', stop);
+    overQuit.addEventListener('click', stop);
+    retry.addEventListener('click', restart);
 
     makeStick(stick, stickKnob, 40, function (v, on) {
       stickV = v;
       stickOn = on;
-      if (on) aimMode = 'keys';
-    });
-    makeStick(fire, fireKnob, 28, function (v, on) {
-      padFire = on;
-      var len = Math.sqrt(v.x * v.x + v.y * v.y);
-      padAim = len > 0.35 ? { x: v.x / len, y: v.y / len } : null;
+      if (on) help.classList.add('is-faded');
     });
 
     var resizeRaf = 0;
@@ -436,45 +553,44 @@
         resizeRaf = 0;
         sizeCanvas();
         remeasure(world);
-        measureGround();
-        docW = root.scrollWidth;
+        measureArena();
       });
     }
     window.addEventListener('resize', onResize);
 
-    /* --- 壊す --- */
+    /* --- 破片と光 --- */
 
-    function spawnDebris(t, n, size) {
-      /* 画面の外に散っても見えないので、画面内の部分からだけ出す */
-      var top = Math.max(t.y, window.scrollY - 40);
-      var bottom = Math.min(t.y + t.h, window.scrollY + window.innerHeight + 40);
-      if (bottom <= top) return;
-      for (var i = 0; i < n && particles.length < 900; i++) {
-        particles.push({
-          x: t.x + Math.random() * t.w,
-          y: top + Math.random() * (bottom - top),
+    function pushParticle(p) {
+      if (particles.length < 900) particles.push(p);
+    }
+
+    function spawnDebris(x, y, w, h, n, size, colors) {
+      for (var i = 0; i < n; i++) {
+        pushParticle({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
           vx: (Math.random() - 0.5) * 360 * k,
           vy: (-Math.random() * 320 - 40) * k,
           life: 0.8 + Math.random() * 0.7,
           age: 0,
           size: size,
-          color: t.colors[Math.floor(Math.random() * t.colors.length)]
+          color: colors[Math.floor(Math.random() * colors.length)]
         });
       }
     }
 
-    function spawnSparks(x, y, dir) {
-      for (var i = 0; i < 4 && particles.length < 900; i++) {
+    function spawnSparks(x, y, dir, colors) {
+      for (var i = 0; i < 4; i++) {
         var a = Math.atan2(dir.y, dir.x) + Math.PI + (Math.random() - 0.5) * 1.6;
         var s = (120 + Math.random() * 220) * k;
-        particles.push({
+        pushParticle({
           x: x, y: y,
           vx: Math.cos(a) * s,
           vy: Math.sin(a) * s,
           life: 0.25 + Math.random() * 0.2,
           age: 0,
           size: Math.max(2, scale - 1),
-          color: Math.random() < 0.5 ? '#ff3b3b' : '#ffb13b'
+          color: colors[Math.floor(Math.random() * colors.length)]
         });
       }
     }
@@ -487,26 +603,166 @@
       t.hitUntil = now + 0.09;
     }
 
-    function destroy(t) {
+    /* 掲載情報を壊す。壊した数は得点に足す */
+    function destroyTarget(t) {
       t.alive = false;
       t.el.classList.add('tr-gone');
-      spawnDebris(t, Math.max(6, Math.min(70, Math.round(t.w * t.h / 1200))), scale);
+      spawnDebris(t.x, Math.max(t.y, arena.top), t.w, Math.min(t.y + t.h, arena.floorY) - Math.max(t.y, arena.top),
+        Math.max(6, Math.min(50, Math.round(t.w * t.h / 1500))), scale, t.colors);
       destroyed++;
-      updateCount();
+      score += 2;
       var box = t.box;
       if (box && box.alive && box.leaves.every(function (l) { return !l.alive; })) {
         box.alive = false;
         box.el.classList.add('tr-gone');
-        spawnDebris(box, 24, scale);
-      }
-      if (destroyed === total) {
-        done.hidden = false;
-        restore.focus();
+        spawnDebris(box.x, box.y, box.w, box.h, 24, scale, box.colors);
       }
     }
 
-    function hitTest(t, px, py) {
-      return px >= t.x && px <= t.x + t.w && py >= t.y && py <= t.y + t.h;
+    function restorePage() {
+      world.leaves.concat(world.boxes).forEach(function (x) {
+        x.el.classList.remove('tr-gone');
+        x.el.classList.remove('tr-hit');
+        x.alive = true;
+        x.hitUntil = 0;
+        if (x.maxHp) x.hp = x.maxHp;
+      });
+      flashing = [];
+    }
+
+    function inRect(px, py, x, y, w, h) {
+      return px >= x && px <= x + w && py >= y && py <= y + h;
+    }
+
+    /* --- ウェーブとスライム --- */
+
+    function nextWave() {
+      wave++;
+      spec = waveSpec(wave);
+      toSpawn = spec.count;
+      spawnTimer = 0.9;
+      showBanner('WAVE ' + wave);
+      updateHud();
+    }
+
+    function spawnSlime() {
+      var type = SLIME_TYPES[spec.pick()];
+      var w = type.cw * scale;
+      var h = type.ch * scale;
+      var fromLeft = Math.random() < 0.5;
+      slimes.push({
+        type: type,
+        w: w, h: h,
+        x: fromLeft ? arena.left - w - 4 : arena.left + arena.width + 4,
+        y: arena.floorY - h,
+        vx: 0, vy: 0,
+        hp: type.hp,
+        face: fromLeft ? 1 : -1,
+        onGround: true,
+        rest: type.rest * 0.5,
+        squash: 0,
+        flash: 0,
+        inside: false
+      });
+    }
+
+    function updateSlime(s, dt) {
+      if (s.onGround) {
+        s.rest -= dt;
+        if (s.rest <= 0) {
+          var dir = player.x + player.w / 2 > s.x + s.w / 2 ? 1 : -1;
+          s.face = dir;
+          s.vx = dir * s.type.speed * spec.speed * k * (0.85 + Math.random() * 0.3);
+          s.vy = -s.type.jump * k * (0.9 + Math.random() * 0.2);
+          s.onGround = false;
+          s.squash = -0.2;
+        }
+      } else {
+        s.vy += 1500 * k * dt;
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        if (!s.inside && s.x > arena.left && s.x + s.w < arena.left + arena.width) s.inside = true;
+        if (s.inside) {
+          if (s.x < arena.left && s.vx < 0) { s.x = arena.left; s.vx = -s.vx; s.face = 1; }
+          if (s.x + s.w > arena.left + arena.width && s.vx > 0) { s.x = arena.left + arena.width - s.w; s.vx = -s.vx; s.face = -1; }
+        }
+        if (s.y + s.h >= arena.floorY) {
+          s.y = arena.floorY - s.h;
+          s.vy = 0;
+          s.vx = 0;
+          s.onGround = true;
+          s.rest = s.type.rest * (0.8 + Math.random() * 0.4);
+          s.squash = 0.25;
+        }
+      }
+      s.squash += (0 - s.squash) * Math.min(1, dt * 10);
+      s.flash -= dt;
+    }
+
+    function killSlime(s) {
+      spawnDebris(s.x, s.y, s.w, s.h, 14, scale, [s.type.body, s.type.light]);
+      score += s.type.points;
+      updateHud();
+    }
+
+    /* --- 被弾と死 --- */
+
+    function hurt(s, t) {
+      if (t < player.invUntil) return;
+      player.hearts--;
+      player.invUntil = t + 1.5;
+      var dir = player.x + player.w / 2 > s.x + s.w / 2 ? 1 : -1;
+      player.vx = dir * 320 * k;
+      player.vy = -260 * k;
+      player.onGround = false;
+      s.vx = -dir * 160 * k;
+      s.vy = -220 * k;
+      s.onGround = false;
+      spawnSparks(player.x + player.w / 2, player.y + player.h / 2, { x: -dir, y: 0 }, ['#ff3b3b', '#ffb13b']);
+      updateHud();
+      if (player.hearts <= 0) die();
+    }
+
+    function die() {
+      state = 'dead';
+      deadTimer = 1.0;
+      player.dead = true;
+      spawnDebris(player.x, player.y, player.w, player.h, 40, scale, [PALETTE.A, PALETTE.K, PALETTE.W, PALETTE.P]);
+      if (score > best) {
+        best = score;
+        writeBest(best);
+        overBest.textContent = 'ベスト更新！';
+      } else {
+        overBest.textContent = 'ベスト ' + best;
+      }
+      overScore.textContent = 'スコア ' + score;
+      updateHud();
+    }
+
+    function showOver() {
+      state = 'over';
+      over.hidden = false;
+      retry.focus({ preventScroll: true });
+    }
+
+    function restart() {
+      if (state !== 'over') return;
+      over.hidden = true;
+      restorePage();
+      slimes = [];
+      lasers = [];
+      particles = [];
+      wave = 0;
+      spec = null;
+      toSpawn = 0;
+      waveGap = 0.6;
+      score = 0;
+      destroyed = 0;
+      measureArena();
+      resetPlayer();
+      state = 'play';
+      runStart = performance.now();
+      updateHud();
     }
 
     /* --- 1 コマ進める --- */
@@ -520,70 +776,93 @@
       last = now;
       var t = now / 1000;
 
+      if (state === 'play') updatePlay(dt, t);
+      else if (state === 'dead') {
+        deadTimer -= dt;
+        if (deadTimer <= 0) showOver();
+      }
+
+      /* 破片。地面で跳ねる */
+      for (var q = particles.length - 1; q >= 0; q--) {
+        var pt = particles[q];
+        pt.age += dt;
+        if (pt.age >= pt.life) {
+          particles.splice(q, 1);
+          continue;
+        }
+        pt.vy += 1100 * k * dt;
+        pt.x += pt.vx * dt;
+        pt.y += pt.vy * dt;
+        if (pt.y > arena.floorY) {
+          pt.y = arena.floorY;
+          pt.vy *= -0.4;
+          pt.vx *= 0.7;
+        }
+      }
+
+      /* 当たった光を戻す */
+      for (var f = flashing.length - 1; f >= 0; f--) {
+        if (flashing[f].hitUntil <= t) {
+          flashing[f].el.classList.remove('tr-hit');
+          flashing[f].hitUntil = 0;
+          flashing.splice(f, 1);
+        }
+      }
+
+      if (bannerTimer > 0) {
+        bannerTimer -= dt;
+        if (bannerTimer <= 0) banner.classList.remove('is-shown');
+      }
+
+      draw(t);
+    }
+
+    function updatePlay(dt, t) {
       /* 入力をまとめる */
       var mx = 0;
       if (keys.left) mx -= 1;
       if (keys.right) mx += 1;
-      var thrust = keys.up;
-      var drop = keys.down;
+      var jump = keys.jump || tapJump;
       if (stickOn) {
         if (Math.abs(stickV.x) > 0.25) mx = stickV.x;
-        if (stickV.y < -0.45) thrust = true;
-        if (stickV.y > 0.6) drop = true;
+        if (stickV.y < -0.45) jump = true;
       }
-      var firing = keys.fire || mouseFire || padFire;
+      if (mx !== 0) player.facing = mx > 0 ? 1 : -1;
 
-      /* 狙い */
-      var cxv = player.x + player.w / 2 - window.scrollX;
-      var cyv = player.y + player.h / 2 - window.scrollY;
-      if (padAim) {
-        aim = padAim;
-      } else if (aimMode === 'mouse' && mouse) {
-        var dx = mouse.x - cxv;
-        var dy = mouse.y - cyv;
-        var len = Math.sqrt(dx * dx + dy * dy) || 1;
-        aim = { x: dx / len, y: dy / len };
-      } else {
-        var ax = 0;
-        var ay = 0;
-        if (stickOn && Math.sqrt(stickV.x * stickV.x + stickV.y * stickV.y) > 0.3) {
-          ax = stickV.x;
-          ay = stickV.y;
-        } else {
-          ax = (keys.left ? -1 : 0) + (keys.right ? 1 : 0);
-          ay = (keys.up ? -1 : 0) + (keys.down ? 1 : 0);
-        }
-        if (ax === 0 && ay === 0) ax = player.facing;
-        var alen = Math.sqrt(ax * ax + ay * ay);
-        aim = { x: ax / alen, y: ay / alen };
-      }
-      if (Math.abs(aim.x) > 0.2) player.facing = aim.x > 0 ? 1 : -1;
-      else if (mx !== 0) player.facing = mx > 0 ? 1 : -1;
-
-      /* 動き */
+      /* 動き。地面からのジャンプはひと跳ね、押し続けると燃料のある間だけ飛ぶ */
       var speed = 320 * k;
-      var targetVx = mx * speed;
-      player.vx += (targetVx - player.vx) * Math.min(1, dt * (player.onGround ? 14 : 7));
-      player.thrusting = thrust;
-      if (thrust) {
-        player.vy -= 2800 * k * dt;
-        if (player.vy < -520 * k) player.vy = -520 * k;
-      } else {
+      player.vx += (mx * speed - player.vx) * Math.min(1, dt * (player.onGround ? 14 : 7));
+      var pressed = jump && !jumpWasDown;
+      jumpWasDown = jump;
+      if (pressed && player.onGround) {
+        player.vy = -420 * k;
+        player.onGround = false;
+      }
+      player.thrusting = false;
+      if (jump && !player.onGround && player.fuel > 0) {
+        player.thrusting = true;
+        player.fuel = Math.max(0, player.fuel - dt / FUEL_SECONDS);
+        player.vy -= 2600 * k * dt;
+        if (player.vy < -480 * k) player.vy = -480 * k;
+      }
+      if (!player.thrusting) {
         player.vy += 1500 * k * dt;
         if (player.vy > 1000 * k) player.vy = 1000 * k;
       }
-      var newX = Math.min(Math.max(player.x + player.vx * dt, 0), docW - player.w);
+      if (player.onGround) player.fuel = Math.min(1, player.fuel + dt / (FUEL_SECONDS * 0.6));
+
+      var newX = Math.min(Math.max(player.x + player.vx * dt, arena.left), arena.left + arena.width - player.w);
       var newY = player.y + player.vy * dt;
       var feetOld = player.y + player.h;
       player.onGround = false;
 
       /* 足場。落ちているときだけ、上から乗る */
-      if (player.vy > 0 && !drop) {
+      if (player.vy > 0) {
         var feetNew = newY + player.h;
         var platforms = world.leaves.concat(world.boxes);
         for (var i = 0; i < platforms.length; i++) {
           var p = platforms[i];
-          if (!p.alive || !p.platform) continue;
+          if (!p.alive || !p.platform || p.y >= arena.floorY) continue;
           if (feetOld > p.y + 1 || feetNew < p.y) continue;
           if (newX + player.w <= p.x + 3 || newX >= p.x + p.w - 3) continue;
           newY = p.y - player.h;
@@ -592,13 +871,13 @@
           break;
         }
       }
-      if (newY + player.h >= floorY) {
-        newY = floorY - player.h;
+      if (newY + player.h >= arena.floorY) {
+        newY = arena.floorY - player.h;
         player.vy = 0;
         player.onGround = true;
       }
-      if (newY < 0) {
-        newY = 0;
+      if (newY < arena.top) {
+        newY = arena.top;
         player.vy = 0;
       }
       player.x = newX;
@@ -614,29 +893,65 @@
         player.walkFrame = 0;
         player.walkT = 0;
       }
+      fuelBar.style.transform = 'scaleX(' + player.fuel + ')';
 
-      /* カメラ。キャラが画面の上下 35% の帯から出たら追う */
-      var vh = window.innerHeight;
-      var top = window.scrollY;
-      var cy = player.y + player.h / 2;
-      var want = top;
-      if (cy < top + vh * 0.35) want = cy - vh * 0.35;
-      else if (cy > top + vh * 0.65) want = cy - vh * 0.65;
-      want = Math.min(Math.max(want, 0), floorY + groundH - vh);
-      if (Math.abs(want - top) > 0.5) window.scrollTo({ top: want, left: window.scrollX, behavior: 'instant' });
+      /* ウェーブ。全部倒したら少し置いて次へ */
+      if (spec && toSpawn > 0) {
+        spawnTimer -= dt;
+        if (spawnTimer <= 0) {
+          spawnTimer = spec.interval;
+          toSpawn--;
+          spawnSlime();
+        }
+      } else if (slimes.length === 0) {
+        waveGap -= dt;
+        if (waveGap <= 0) {
+          if (wave > 0) score += wave * 20;
+          waveGap = 1.5;
+          nextWave();
+        }
+      }
 
-      /* 射撃 */
-      var ang = Math.atan2(aim.y, aim.x * player.facing);
+      /* スライム。触れたら被弾 */
+      var pcx = player.x + player.w / 2;
+      var pcy = player.y + player.h / 2;
+      for (var si = 0; si < slimes.length; si++) {
+        var s = slimes[si];
+        updateSlime(s, dt);
+        if (player.x + player.w > s.x + 2 && player.x < s.x + s.w - 2 &&
+            player.y + player.h > s.y + 2 && player.y < s.y + s.h - 2) {
+          hurt(s, t);
+          if (state !== 'play') return;
+        }
+      }
+
+      /* 自動射撃。向いている側でいちばん近いスライムを狙う。いなければ正面 */
+      var target = null;
+      var bestD = 760 * k;
+      for (var ti = 0; ti < slimes.length; ti++) {
+        var c = slimes[ti];
+        var dx = c.x + c.w / 2 - pcx;
+        var dy = c.y + c.h / 2 - pcy;
+        if (dx * player.facing <= 0) continue;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d < bestD) {
+          bestD = d;
+          target = { dx: dx, dy: dy };
+        }
+      }
+      var ang = target ? Math.atan2(target.dy, Math.abs(target.dx)) : 0;
+      ang = Math.max(-1.2, Math.min(1.2, ang));
+      player.gunAngle += (ang - player.gunAngle) * Math.min(1, dt * 18);
+      ang = player.gunAngle;
       var shoulderX = player.x + (player.facing > 0 ? SHOULDER_COL : SPRITE_W - SHOULDER_COL) * scale;
       var shoulderY = player.y + SHOULDER_ROW * scale;
       var muzzleX = shoulderX + player.facing * Math.cos(ang) * GUN_LEN * scale;
       var muzzleY = shoulderY + Math.sin(ang) * GUN_LEN * scale;
       shotCooldown -= dt;
-      if (firing && shotCooldown <= 0) {
+      if (shotCooldown <= 0) {
         shotCooldown = SHOT_INTERVAL;
         muzzleFlash = 0.05;
-        var spread = (Math.random() - 0.5) * 0.06;
-        var sa = ang + spread;
+        var sa = ang + (Math.random() - 0.5) * 0.05;
         var sp = 1300 * k;
         lasers.push({
           x: muzzleX, y: muzzleY,
@@ -644,18 +959,10 @@
           vy: Math.sin(sa) * sp,
           age: 0
         });
-        help.classList.add('is-faded');
       }
       muzzleFlash -= dt;
 
-      /* レーザーを進めて当てる */
-      var bandTop = top - 300;
-      var bandBottom = top + vh + 300;
-      var near = [];
-      for (var li = 0; li < world.leaves.length; li++) {
-        var leaf = world.leaves[li];
-        if (leaf.alive && leaf.y < bandBottom && leaf.y + leaf.h > bandTop) near.push(leaf);
-      }
+      /* レーザーを進めて当てる。スライムが先、外れた弾が掲載情報に当たる */
       for (var n = lasers.length - 1; n >= 0; n--) {
         var b = lasers[n];
         var ox = b.x;
@@ -663,60 +970,75 @@
         b.x += b.vx * dt;
         b.y += b.vy * dt;
         b.age += dt;
-        var dead = b.age > 1.5 || b.x < 0 || b.x > docW || b.y < 0 || b.y > floorY;
-        if (!dead) {
-          /* 1 コマで進む距離が薄い要素より長いので、途中の点でも当たりを見る */
-          hit: for (var s = 1; s <= 3; s++) {
-            var px = ox + (b.x - ox) * s / 3;
-            var py = oy + (b.y - oy) * s / 3;
-            for (var ti = 0; ti < near.length; ti++) {
-              var tg = near[ti];
-              if (!tg.alive || !hitTest(tg, px, py)) continue;
-              tg.hp -= 1;
-              flash(tg, t);
-              spawnSparks(px, py, { x: b.vx, y: b.vy });
-              if (tg.hp <= 0) destroy(tg);
-              dead = true;
-              break hit;
+        var dead = b.age > 1.2 || b.x < arena.left - 40 || b.x > arena.left + arena.width + 40 ||
+          b.y < arena.top - 40 || b.y > arena.floorY;
+        hit: for (var st = 1; st <= 3 && !dead; st++) {
+          var px = ox + (b.x - ox) * st / 3;
+          var py = oy + (b.y - oy) * st / 3;
+          for (var sj = slimes.length - 1; sj >= 0; sj--) {
+            var sl = slimes[sj];
+            if (!inRect(px, py, sl.x, sl.y, sl.w, sl.h)) continue;
+            sl.hp -= 1;
+            sl.flash = 0.08;
+            sl.x += player.facing * 3 * k;
+            spawnSparks(px, py, { x: b.vx, y: b.vy }, [sl.type.light, '#ff3b3b']);
+            if (sl.hp <= 0) {
+              killSlime(sl);
+              slimes.splice(sj, 1);
             }
+            dead = true;
+            break hit;
+          }
+          for (var tj = 0; tj < near.length; tj++) {
+            var tg = near[tj];
+            if (!tg.alive || !inRect(px, py, tg.x, tg.y, tg.w, tg.h)) continue;
+            tg.hp -= 1;
+            flash(tg, t);
+            spawnSparks(px, py, { x: b.vx, y: b.vy }, ['#ff3b3b', '#ffb13b']);
+            if (tg.hp <= 0) {
+              destroyTarget(tg);
+              updateHud();
+            }
+            dead = true;
+            break hit;
           }
         }
         if (dead) lasers.splice(n, 1);
       }
-
-      /* 当たった光を戻す */
-      for (var f = flashing.length - 1; f >= 0; f--) {
-        if (flashing[f].hitUntil <= t) {
-          flashing[f].el.classList.remove('tr-hit');
-          flashing[f].hitUntil = 0;
-          flashing.splice(f, 1);
-        }
-      }
-
-      /* 破片 */
-      for (var q = particles.length - 1; q >= 0; q--) {
-        var pt = particles[q];
-        pt.age += dt;
-        if (pt.age >= pt.life) {
-          particles.splice(q, 1);
-          continue;
-        }
-        pt.vy += 1100 * k * dt;
-        pt.x += pt.vx * dt;
-        pt.y += pt.vy * dt;
-        if (pt.y > floorY) {
-          pt.y = floorY;
-          pt.vy *= -0.4;
-          pt.vx *= 0.7;
-        }
-      }
-
-      draw(t, ang, shoulderX, shoulderY, muzzleX, muzzleY);
     }
 
     /* --- 描く --- */
 
-    function draw(t, ang, shoulderX, shoulderY, muzzleX, muzzleY) {
+    function drawSlime(s, sx, sy) {
+      var type = s.type;
+      var cx = Math.round(s.x + s.w / 2 - sx);
+      var by = Math.round(s.y + s.h - sy);
+      ctx.save();
+      ctx.translate(cx, by);
+      ctx.scale(1 + s.squash, 1 - s.squash);
+      ctx.globalAlpha = 0.9;
+      var ox = -Math.round(s.w / 2);
+      var top = -s.h;
+      ctx.fillStyle = s.flash > 0 ? '#ffffff' : type.body;
+      for (var r = 0; r < type.ch; r++) {
+        var inset = r === 0 ? 2 : r === 1 ? 1 : r === type.ch - 1 ? 1 : 0;
+        ctx.fillRect(ox + inset * scale, top + r * scale, (type.cw - 2 * inset) * scale, scale);
+      }
+      if (s.flash <= 0) {
+        ctx.fillStyle = type.light;
+        ctx.fillRect(ox + 2 * scale, top + scale, 2 * scale, scale);
+        ctx.fillRect(ox + 1 * scale, top + 2 * scale, scale, scale);
+        ctx.fillStyle = type.eye;
+        var ey = top + Math.floor(type.ch / 2) * scale;
+        var e1 = s.face > 0 ? type.cw - 4 : 3;
+        var e2 = s.face > 0 ? type.cw - 2 : 1;
+        ctx.fillRect(ox + e1 * scale, ey, scale, scale);
+        ctx.fillRect(ox + e2 * scale, ey, scale, scale);
+      }
+      ctx.restore();
+    }
+
+    function draw(t) {
       var sx = window.scrollX;
       var sy = window.scrollY;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -725,40 +1047,39 @@
 
       /* 地面。いちばん上が草、その下が土。模様はタイルの位置から決めるので揺れない */
       var tile = 4 * scale;
-      var gy = Math.round(floorY - sy);
-      if (gy < window.innerHeight) {
-        ctx.fillStyle = '#6b4a2e';
-        ctx.fillRect(0, gy, window.innerWidth, window.innerHeight - gy);
-        var col0 = Math.floor(sx / tile);
-        var cols = Math.ceil(window.innerWidth / tile) + 1;
-        var rows = Math.ceil((window.innerHeight - gy) / tile);
-        for (var ci = 0; ci < cols; ci++) {
-          var tx = (col0 + ci) * tile - sx;
-          for (var rj = 0; rj < rows; rj++) {
-            var n = noise(col0 + ci, rj);
-            var ty = gy + rj * tile;
-            if (rj === 0) {
-              ctx.fillStyle = n < 0.5 ? '#4f9d3a' : '#3f8a2f';
-              ctx.fillRect(tx, ty, tile, tile);
-              if (n < 0.35) ctx.fillRect(tx + scale, ty - scale, scale, scale);
-            } else if (n < 0.18) {
-              ctx.fillStyle = '#7d5a39';
-              ctx.fillRect(tx, ty, tile, tile);
-            } else if (n > 0.9) {
-              ctx.fillStyle = '#58391f';
-              ctx.fillRect(tx + scale, ty + scale, 2 * scale, 2 * scale);
-            }
+      var gy = Math.round(arena.floorY - sy);
+      ctx.fillStyle = '#6b4a2e';
+      ctx.fillRect(0, gy, window.innerWidth, window.innerHeight - gy);
+      var cols = Math.ceil(window.innerWidth / tile) + 1;
+      var rows = Math.ceil((window.innerHeight - gy) / tile);
+      for (var ci = 0; ci < cols; ci++) {
+        var tx = ci * tile;
+        for (var rj = 0; rj < rows; rj++) {
+          var nz = noise(ci, rj);
+          var ty = gy + rj * tile;
+          if (rj === 0) {
+            ctx.fillStyle = nz < 0.5 ? '#4f9d3a' : '#3f8a2f';
+            ctx.fillRect(tx, ty, tile, tile);
+            if (nz < 0.35) ctx.fillRect(tx + scale, ty - scale, scale, scale);
+          } else if (nz < 0.18) {
+            ctx.fillStyle = '#7d5a39';
+            ctx.fillRect(tx, ty, tile, tile);
+          } else if (nz > 0.9) {
+            ctx.fillStyle = '#58391f';
+            ctx.fillRect(tx + scale, ty + scale, 2 * scale, 2 * scale);
           }
         }
       }
 
+      /* スライム */
+      for (var si = 0; si < slimes.length; si++) drawSlime(slimes[si], sx, sy);
+
       /* レーザー */
       for (var i = 0; i < lasers.length; i++) {
         var b = lasers[i];
-        var a = Math.atan2(b.vy, b.vx);
         ctx.save();
         ctx.translate(b.x - sx, b.y - sy);
-        ctx.rotate(a);
+        ctx.rotate(Math.atan2(b.vy, b.vx));
         ctx.fillStyle = '#ff3b3b';
         ctx.fillRect(-7 * scale, -scale, 7 * scale, 2 * scale);
         ctx.fillStyle = '#ffd0d0';
@@ -766,46 +1087,47 @@
         ctx.restore();
       }
 
-      /* キャラ。左向きはスプライトの中心で左右反転 */
-      var px = Math.round(player.x - sx);
-      var py = Math.round(player.y - sy);
-      ctx.save();
-      if (player.facing < 0) {
-        ctx.translate(px * 2 + player.w, 0);
-        ctx.scale(-1, 1);
-      }
-      /* ジェットパックの炎 */
-      if (player.thrusting) {
-        var flameLen = 2 + Math.floor(Math.random() * 3);
-        for (var r = 0; r < flameLen; r++) {
-          ctx.fillStyle = r === 0 ? '#ffe08a' : r === 1 ? '#ffb13b' : '#ff6a2a';
-          var fx = px + (r === 0 ? 0 : Math.random() < 0.5 ? 0 : 1) * scale;
-          var fw = (r === 0 ? 2 : 1) * scale;
-          ctx.fillRect(fx, py + (12 + r) * scale, fw, scale);
+      /* キャラ。被弾直後は点滅。左向きはスプライトの中心で左右反転 */
+      if (!player.dead && !(t < player.invUntil && Math.floor(t * 12) % 2 === 0)) {
+        var px = Math.round(player.x - sx);
+        var py = Math.round(player.y - sy);
+        ctx.save();
+        if (player.facing < 0) {
+          ctx.translate(px * 2 + player.w, 0);
+          ctx.scale(-1, 1);
         }
+        if (player.thrusting) {
+          var flameLen = 2 + Math.floor(Math.random() * 3);
+          for (var r = 0; r < flameLen; r++) {
+            ctx.fillStyle = r === 0 ? '#ffe08a' : r === 1 ? '#ffb13b' : '#ff6a2a';
+            var fx = px + (r === 0 ? 0 : Math.random() < 0.5 ? 0 : 1) * scale;
+            var fw = (r === 0 ? 2 : 1) * scale;
+            ctx.fillRect(fx, py + (12 + r) * scale, fw, scale);
+          }
+        }
+        drawRows(ctx, BODY, px, py, scale);
+        drawRows(ctx, player.walkFrame ? LEGS_WALK : LEGS_STAND, px, py + BODY.length * scale, scale);
+        /* 腕と銃。肩を軸に狙いの向きへ回す */
+        ctx.translate(px + SHOULDER_COL * scale, py + SHOULDER_ROW * scale);
+        ctx.rotate(player.gunAngle);
+        ctx.fillStyle = PALETTE.K;
+        ctx.fillRect(0, -scale, 6 * scale, 2 * scale);
+        ctx.fillStyle = PALETTE.G;
+        ctx.fillRect(6 * scale, -2 * scale, 7 * scale, 3 * scale);
+        ctx.fillStyle = PALETTE.J;
+        ctx.fillRect(8 * scale, scale, 2 * scale, 2 * scale);
+        ctx.fillStyle = PALETTE.A;
+        ctx.fillRect(5 * scale, -scale, 2 * scale, 2 * scale);
+        ctx.fillStyle = PALETTE.L;
+        ctx.fillRect(13 * scale, -scale, 3 * scale, 2 * scale);
+        ctx.fillStyle = PALETTE.M;
+        ctx.fillRect(16 * scale, -scale, scale, 2 * scale);
+        if (muzzleFlash > 0) {
+          ctx.fillStyle = '#ffe08a';
+          ctx.fillRect(17 * scale, -2 * scale, 3 * scale, 4 * scale);
+        }
+        ctx.restore();
       }
-      drawRows(ctx, BODY, px, py, scale);
-      drawRows(ctx, player.walkFrame ? LEGS_WALK : LEGS_STAND, px, py + BODY.length * scale, scale);
-      /* 腕と銃。肩を軸に狙いの向きへ回す */
-      ctx.translate(px + SHOULDER_COL * scale, py + SHOULDER_ROW * scale);
-      ctx.rotate(ang);
-      ctx.fillStyle = PALETTE.K;
-      ctx.fillRect(0, -scale, 6 * scale, 2 * scale);
-      ctx.fillStyle = PALETTE.G;
-      ctx.fillRect(6 * scale, -2 * scale, 7 * scale, 3 * scale);
-      ctx.fillStyle = PALETTE.J;
-      ctx.fillRect(8 * scale, scale, 2 * scale, 2 * scale);
-      ctx.fillStyle = PALETTE.A;
-      ctx.fillRect(5 * scale, -scale, 2 * scale, 2 * scale);
-      ctx.fillStyle = PALETTE.L;
-      ctx.fillRect(13 * scale, -scale, 3 * scale, 2 * scale);
-      ctx.fillStyle = PALETTE.M;
-      ctx.fillRect(16 * scale, -scale, scale, 2 * scale);
-      if (muzzleFlash > 0) {
-        ctx.fillStyle = '#ffe08a';
-        ctx.fillRect(17 * scale, -2 * scale, 3 * scale, 4 * scale);
-      }
-      ctx.restore();
 
       /* 破片。寿命の後半で薄くなる */
       for (var q = 0; q < particles.length; q++) {
@@ -830,15 +1152,24 @@
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
       window.removeEventListener('resize', onResize);
-      world.leaves.concat(world.boxes).forEach(function (x) {
-        x.el.classList.remove('tr-gone');
-        x.el.classList.remove('tr-hit');
-      });
-      ground.remove();
+      restorePage();
       canvas.remove();
       ui.remove();
       root.classList.remove('tr-playing');
       launch.focus({ preventScroll: true });
+    }
+
+    /* 調整用の覗き窓。URL に ?tr-debug を付けたときだけ、状態を読める */
+    if (new URLSearchParams(location.search).has('tr-debug')) {
+      window.trDebug = function () {
+        return {
+          state: state, wave: wave, score: score, hearts: player.hearts, destroyed: destroyed,
+          elapsed: (performance.now() - runStart) / 1000,
+          player: { x: player.x, y: player.y, onGround: player.onGround, fuel: player.fuel },
+          slimes: slimes.map(function (s) { return { x: s.x, y: s.y, w: s.w, h: s.h, onGround: s.onGround }; }),
+          arena: arena
+        };
+      };
     }
 
     game = { stop: stop };

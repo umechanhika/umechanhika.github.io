@@ -30,11 +30,8 @@
 
 /* --- 遊んでいる間 --- */
 
-/* ページのスクロールはキャラを追う側が握る。指やホイールでは動かさない */
+/* ページのスクロールはゲームが握る。指やホイールでは動かさない */
 html.tr-playing { overflow: hidden; }
-
-/* 地面ぶんの余白。この高さの土と草を terraria-mode.js が canvas に描き、キャラはその上に立つ */
-.tr-ground { height: 35vh; }
 
 /* canvas は inset だけだと固有サイズのまま置かれるので、画面いっぱいに広げる */
 .tr-canvas {
@@ -44,7 +41,7 @@ html.tr-playing { overflow: hidden; }
   height: 100%;
   z-index: 50;
   touch-action: none;
-  cursor: crosshair;
+  cursor: pointer;
 }
 .tr-ui {
   position: fixed;
@@ -57,28 +54,50 @@ html.tr-playing { overflow: hidden; }
 }
 .tr-ui > * { pointer-events: auto; }
 
-/* 壊した数とやめるボタン。ヘッダーのすぐ下、右寄せ */
+/* 体力・燃料・ウェーブ・得点・ベスト・やめる。ヘッダーのすぐ下、右寄せ */
 .tr-hud {
   position: absolute;
   top: calc(var(--head-h, 0px) + var(--s2));
   right: var(--gutter);
+  left: var(--gutter);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--s1);
 }
-.tr-count {
+.tr-hearts { display: inline-flex; gap: 3px; margin-right: var(--s1); }
+.tr-heart { display: inline-flex; color: #ff3b3b; }
+.tr-heart.is-lost { color: var(--rule); }
+.tr-heart svg { display: block; fill: currentColor; }
+/* 燃料。飛べる残り時間 */
+.tr-fuel {
+  width: 48px;
+  height: 6px;
+  margin-right: var(--s1);
+  border: 1px solid var(--rule);
+  background: var(--card);
+}
+.tr-fuel__bar {
+  display: block;
+  height: 100%;
+  background: #ffb13b;
+  transform-origin: left center;
+}
+.tr-stat {
   display: inline-flex;
   align-items: center;
   min-height: 36px;
-  padding: 0 14px;
+  padding: 0 12px;
   background: var(--fill);
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
 .tr-quit,
-.tr-restore {
+.tr-retry {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 36px;
   padding: 0 14px;
   border: 1px solid var(--rule);
@@ -88,9 +107,11 @@ html.tr-playing { overflow: hidden; }
   cursor: pointer;
 }
 .tr-quit:hover,
-.tr-restore:hover { border-color: var(--ink); color: var(--ink); }
+.tr-retry:hover { border-color: var(--ink); color: var(--ink); }
+.tr-retry { border-color: var(--route); color: var(--route); min-height: 48px; padding: 0 var(--s3); }
+.tr-retry:hover { background: var(--route); color: var(--route-ink); }
 
-/* 操作の説明。撃ち始めるか、しばらく経ったら消す */
+/* 操作の説明。動き始めるか、しばらく経ったら消す */
 .tr-help {
   position: absolute;
   top: calc(var(--head-h, 0px) + var(--s2) + 36px + var(--s3));
@@ -107,19 +128,38 @@ html.tr-playing { overflow: hidden; }
 }
 .tr-help.is-faded { opacity: 0; pointer-events: none; }
 
-/* スマホの操作盤。左が移動のスティック、右が射撃のボタン */
+/* ウェーブの表示。出て、少し見せて、消える */
+.tr-banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 38%;
+  margin: 0;
+  text-align: center;
+  font-family: var(--serif);
+  font-size: var(--t-lead);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+.tr-banner.is-shown { opacity: 1; transform: none; }
+
+/* スマホの操作盤。左にスティック。ジャンプは上に倒すか、画面をタップ */
 .tr-pad {
   display: none;
   position: absolute;
   left: 0;
   right: 0;
   bottom: calc(var(--s4) + env(safe-area-inset-bottom, 0px));
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 0 var(--s4);
 }
 .tr-ui.is-touch .tr-pad { display: flex; }
-.tr-stick,
-.tr-fire {
+.tr-stick {
   position: relative;
   width: 112px;
   height: 112px;
@@ -134,41 +174,31 @@ html.tr-playing { overflow: hidden; }
   position: absolute;
   left: 50%;
   top: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 48px;
   height: 48px;
   margin: -24px 0 0 -24px;
   border: 1px solid var(--rule);
   border-radius: 50%;
   background: var(--fill);
-  font-size: var(--t-label);
-  color: var(--ink-2);
   pointer-events: none;
 }
-.tr-fire { width: 96px; height: 96px; }
-.tr-fire .tr-knob {
-  width: 64px;
-  height: 64px;
-  margin: -32px 0 0 -32px;
-  border-color: #ff3b3b;
-  background: #ff3b3b;
-  color: #fff;
-}
 
-/* 全部壊したとき */
-.tr-done {
+/* やられたとき。得点・ベスト・もう一回 */
+.tr-over {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 45%;
   transform: translate(-50%, -50%);
+  min-width: min(320px, calc(100vw - 2 * var(--gutter)));
   padding: var(--s4);
   border: 1px solid var(--rule);
   background: var(--card);
   text-align: center;
 }
-.tr-done p { margin: 0 0 var(--s3); font-size: var(--t-sub); font-weight: 700; color: var(--ink); }
+.tr-over__title { margin: 0; font-size: var(--t-sub); font-weight: 700; color: var(--ink); }
+.tr-over__score { margin: var(--s2) 0 0; font-size: 26px; font-weight: 700; color: var(--route); line-height: 1.4; font-variant-numeric: tabular-nums; }
+.tr-over__best { margin: 2px 0 0; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tr-over__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s2); margin-top: var(--s3); }
 
 /* --- 撃たれた側 --- */
 
