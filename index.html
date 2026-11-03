@@ -24,6 +24,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="terraria-mode.css">
 
 <script>
 (function () {
@@ -446,9 +447,18 @@
       </ul>
       <p class="site-foot__updated">最終更新：2026年9月</p>
     </div>
+    <!-- 末尾まで読んだ人へのおまけ。terraria-mode.js が末尾に着いたときに見せる -->
+    <div class="tr-launch-row">
+      <p>最後まで読んでくださってありがとうございます。おまけで遊べます。</p>
+      <button class="btn tr-launch" type="button">
+        <canvas class="tr-launch__icon" width="28" height="36" aria-hidden="true"></canvas>
+        テラリアモードで遊ぶ
+      </button>
+    </div>
   </div>
 </footer>
 
 <script src="route-map.js" defer></script>
+<script src="terraria-mode.js" defer></script>
 </body>
 </html>

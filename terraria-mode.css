@@ -1,0 +1,172 @@
+/* ---------------------------------------------------------------
+   テラリアモード。ページの末尾まで読んだ人へのおまけ。動きは terraria-mode.js。
+
+   本文のデザイン規則をそのまま使う。枠線は押せるもの、塗りは押せないもの。
+   色・間隔・文字の大きさは style.css のスケールから選ぶ。
+   --------------------------------------------------------------- */
+
+/* --- 起動ボタン。末尾に着くまでは場所だけ確保して見せない --- */
+
+.tr-launch-row {
+  margin-top: var(--s5);
+  text-align: center;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.tr-launch-row.is-ready { visibility: visible; opacity: 1; transform: none; }
+.tr-launch-row p { margin: 0 0 var(--s2); font-size: var(--t-meta); color: var(--muted); }
+.tr-launch {
+  gap: var(--s2);
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+.tr-launch__icon { display: block; width: 28px; height: 36px; image-rendering: pixelated; }
+@media (prefers-reduced-motion: reduce) {
+  .tr-launch-row { transition: none; transform: none; }
+}
+
+/* --- 遊んでいる間 --- */
+
+/* ページのスクロールはキャラを追う側が握る。指やホイールでは動かさない */
+html.tr-playing { overflow: hidden; }
+
+/* canvas は inset だけだと固有サイズのまま置かれるので、画面いっぱいに広げる */
+.tr-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  touch-action: none;
+  cursor: crosshair;
+}
+.tr-ui {
+  position: fixed;
+  inset: 0;
+  z-index: 51;
+  pointer-events: none;
+  font-family: var(--sans);
+  font-size: var(--t-meta);
+  line-height: 1.6;
+}
+.tr-ui > * { pointer-events: auto; }
+
+/* 壊した数とやめるボタン。ヘッダーのすぐ下、右寄せ */
+.tr-hud {
+  position: absolute;
+  top: calc(var(--head-h, 0px) + var(--s2));
+  right: var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+.tr-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  background: var(--fill);
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.tr-quit,
+.tr-restore {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+.tr-quit:hover,
+.tr-restore:hover { border-color: var(--ink); color: var(--ink); }
+
+/* 操作の説明。撃ち始めるか、しばらく経ったら消す */
+.tr-help {
+  position: absolute;
+  top: calc(var(--head-h, 0px) + var(--s2) + 36px + var(--s3));
+  left: var(--gutter);
+  right: var(--gutter);
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  text-wrap: pretty;
+  transition: opacity 0.8s ease;
+}
+.tr-help.is-faded { opacity: 0; pointer-events: none; }
+
+/* スマホの操作盤。左が移動のスティック、右が射撃のボタン */
+.tr-pad {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--s4) + env(safe-area-inset-bottom, 0px));
+  justify-content: space-between;
+  padding: 0 var(--s4);
+}
+.tr-ui.is-touch .tr-pad { display: flex; }
+.tr-stick,
+.tr-fire {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: rgba(255, 253, 246, 0.75);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tr-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: var(--fill);
+  font-size: var(--t-label);
+  color: var(--ink-2);
+  pointer-events: none;
+}
+.tr-fire { width: 96px; height: 96px; }
+.tr-fire .tr-knob {
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  border-color: #ff3b3b;
+  background: #ff3b3b;
+  color: #fff;
+}
+
+/* 全部壊したとき */
+.tr-done {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: var(--s4);
+  border: 1px solid var(--rule);
+  background: var(--card);
+  text-align: center;
+}
+.tr-done p { margin: 0 0 var(--s3); font-size: var(--t-sub); font-weight: 700; color: var(--ink); }
+
+/* --- 撃たれた側 --- */
+
+/* 当たった瞬間。レイアウトを動かさないよう outline で光らせる */
+.tr-hit { outline: 2px solid #ff3b3b; outline-offset: -1px; }
+/* 壊れたもの。場所は残して見えなくする。やめたときに戻す */
+.tr-gone { visibility: hidden !important; }

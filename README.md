@@ -11,6 +11,8 @@ GitHub Pages が `master` ブランチのルートをそのまま配信します
 | `index.html` | サイト本体。1ページで完結します |
 | `style.css` | スタイル。設計の方針はファイル冒頭のコメントにあります |
 | `route-map.js` | ヘッダーの経路図と本文のスクロールを同期します |
+| `terraria-mode.js` | 末尾のおまけ。ドット絵のキャラを動かしてページを壊して遊べます |
+| `terraria-mode.css` | おまけのスタイル |
 | `assets/` | 画像 |
 | `tools/ogp.html` | OGP 画像の版下 |
 | `robots.txt` | クローラー向けの許可設定とサイトマップの場所 |
