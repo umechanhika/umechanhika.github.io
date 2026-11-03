@@ -380,6 +380,33 @@
     '<rect x="0" y="1" width="7" height="2"/><rect x="1" y="3" width="5" height="1"/>' +
     '<rect x="2" y="4" width="3" height="1"/><rect x="3" y="5" width="1" height="1"/></svg>';
 
+  /* --- 舞台 ---------------------------------------------------------
+     ウェーブごとに 1 セクション上へ移る。順番は経路図の駅を末尾から先頭へ。
+     先頭を越えたら「踏破」を出して、また末尾から 2 周目に入る。 */
+  var header = document.querySelector('.site-head');
+  var stationLinks = document.querySelectorAll('.route-map__station a');
+  if (!header || !stationLinks.length) throw new Error('terraria-mode: 経路図が見つからない');
+  var STAGES = Array.prototype.map.call(stationLinks, function (a) {
+    var target = document.querySelector(a.getAttribute('href'));
+    if (!target) throw new Error('terraria-mode: 駅の行き先が見つからない: ' + a.getAttribute('href'));
+    return { el: target, name: a.textContent.trim() };
+  }).reverse();
+  var MOVE_SECONDS = 1.1;
+
+  function maxScroll() {
+    return Math.max(0, root.scrollHeight - window.innerHeight);
+  }
+  /* n 番目のウェーブの舞台。最初の舞台はページの末尾そのもの */
+  function stageOf(n) {
+    return STAGES[(n - 1) % STAGES.length];
+  }
+  function stageScroll(n) {
+    var i = (n - 1) % STAGES.length;
+    if (i === 0) return maxScroll();
+    var top = STAGES[i].el.getBoundingClientRect().top + window.scrollY - header.offsetHeight;
+    return Math.min(Math.max(0, top), maxScroll());
+  }
+
   /* --- ゲーム本体 --- */
 
   var game = null;
@@ -393,6 +420,7 @@
     var k = scale / 3;
 
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    var startScroll = window.scrollY;
     root.classList.add('tr-playing');
 
     /* --- 画面の部品を組む --- */
@@ -522,6 +550,8 @@
     var buff = { dual: 0, jet: 0 };
     var drops = 0;
     var pickups = 0;
+    /* 舞台の移動。from から to へ MOVE_SECONDS かけてスクロールし、着いたら次のウェーブ */
+    var move = null;
     var flashing = [];
     var shotCooldown = 0;
     var muzzleFlash = 0;
@@ -562,11 +592,11 @@
     }
     updateHud();
 
-    function showBanner(n, count) {
-      bannerWave.textContent = 'WAVE ' + n;
-      bannerNote.textContent = 'スライムが ' + count + ' 匹来ます';
+    function showBanner(title, note, seconds) {
+      bannerWave.textContent = title;
+      bannerNote.textContent = note;
       banner.classList.add('is-shown');
-      bannerTimer = 2.2;
+      bannerTimer = seconds;
     }
 
     /* --- 入力 --- */
@@ -756,8 +786,42 @@
       toSpawn = spec.count;
       spawnTimer = 0.9;
       spawnLeft = Math.random() < 0.5;
-      showBanner(wave, spec.count);
+      showBanner('WAVE ' + wave, stageOf(wave).name + '　スライムが ' + spec.count + ' 匹来ます', 2.2);
       updateHud();
+    }
+
+    /* 次の舞台へ動き始める。動いている間はスライムもアイテムも無い */
+    function startMove() {
+      var next = wave + 1;
+      items = [];
+      lasers = [];
+      move = { from: window.scrollY, to: stageScroll(next), t: 0 };
+      /* 動く距離が無ければ待たせない */
+      if (Math.abs(move.to - move.from) < 1) move.t = 1;
+      if (next > 1 && (next - 1) % STAGES.length === 0) {
+        score += 200;
+        showBanner('踏破！', (Math.floor((next - 1) / STAGES.length) + 1) + ' 周目に入ります', 1.6);
+      }
+    }
+
+    /* スクロール位置を変える。キャラは画面上の位置を保ったまま一緒に動かす */
+    function scrollArenaTo(y) {
+      var before = window.scrollY;
+      window.scrollTo({ top: y, left: window.scrollX, behavior: 'instant' });
+      var delta = window.scrollY - before;
+      player.y += delta;
+      measureArena();
+    }
+
+    function updateMove(dt) {
+      move.t = Math.min(1, move.t + dt / MOVE_SECONDS);
+      var e = move.t < 0.5 ? 2 * move.t * move.t : 1 - Math.pow(-2 * move.t + 2, 2) / 2;
+      scrollArenaTo(Math.round(move.from + (move.to - move.from) * e));
+      if (move.t >= 1) {
+        move = null;
+        waveGap = 1.5;
+        nextWave();
+      }
     }
 
     function spawnSlime() {
@@ -888,6 +952,8 @@
       waveGap = 0.6;
       score = 0;
       destroyed = 0;
+      move = null;
+      window.scrollTo({ top: maxScroll(), left: window.scrollX, behavior: 'instant' });
       measureArena();
       resetPlayer();
       state = 'play';
@@ -1077,14 +1143,14 @@
           toSpawn--;
           spawnSlime();
         }
-      } else if (slimes.length === 0) {
+      } else if (slimes.length === 0 && !move) {
         waveGap -= dt;
         if (waveGap <= 0) {
           if (wave > 0) score += wave * 20;
-          waveGap = 1.5;
-          nextWave();
+          startMove();
         }
       }
+      if (move) updateMove(dt);
 
       /* スライム。触れたら被弾 */
       for (var si = 0; si < slimes.length; si++) {
@@ -1395,6 +1461,7 @@
       canvas.remove();
       ui.remove();
       root.classList.remove('tr-playing');
+      window.scrollTo({ top: startScroll, left: window.scrollX, behavior: 'instant' });
       launch.focus({ preventScroll: true });
     }
 
@@ -1405,6 +1472,7 @@
         return {
           state: state, wave: wave, score: score, hearts: player.hearts, destroyed: destroyed,
           drops: drops, pickups: pickups, buff: { dual: buff.dual, jet: buff.jet },
+          stage: wave > 0 ? stageOf(wave).name : null, scrollY: window.scrollY, moving: !!move,
           items: items.map(function (i) { return { key: i.key, x: i.x, y: i.y }; }),
           elapsed: (performance.now() - runStart) / 1000,
           player: { x: player.x, y: player.y, onGround: player.onGround, fuel: player.fuel },
