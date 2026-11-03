@@ -416,14 +416,7 @@
     var bestEl = el('span', 'tr-stat');
     var quit = el('button', 'tr-quit', 'やめる');
     quit.type = 'button';
-    var buffs = el('div', 'tr-buffs');
-    var buffEls = { dual: el('span', 'tr-buff'), jet: el('span', 'tr-buff') };
-    buffEls.dual.style.setProperty('--buff', ITEMS.dual.color);
-    buffEls.jet.style.setProperty('--buff', ITEMS.jet.color);
-    buffs.appendChild(buffEls.dual);
-    buffs.appendChild(buffEls.jet);
     hud.appendChild(hearts);
-    hud.appendChild(buffs);
     hud.appendChild(waveEl);
     hud.appendChild(scoreEl);
     hud.appendChild(bestEl);
@@ -563,11 +556,6 @@
 
     function updateHud() {
       heartEls.forEach(function (h, i) { h.classList.toggle('is-lost', i >= player.hearts); });
-      ['dual', 'jet'].forEach(function (key) {
-        var on = buff[key] > 0;
-        buffEls[key].hidden = !on;
-        if (on) buffEls[key].textContent = ITEMS[key].name + ' ' + Math.ceil(buff[key]);
-      });
       waveEl.textContent = 'WAVE ' + Math.max(1, wave);
       scoreEl.textContent = 'スコア ' + score;
       bestEl.textContent = 'ベスト ' + best;
@@ -1012,10 +1000,8 @@
       if (buff.jet > 0) player.fuel = 1;
 
       /* 強化の残り時間 */
-      var buffWas = (buff.dual > 0) + (buff.jet > 0);
       buff.dual = Math.max(0, buff.dual - dt);
       buff.jet = Math.max(0, buff.jet - dt);
-      if (buffWas) updateHud();
 
       /* アイテム。落ちて来て床に乗り、しばらく待って消える。触れたら拾う */
       for (var ii = items.length - 1; ii >= 0; ii--) {
@@ -1343,16 +1329,28 @@
         }
         drawRows(ctx, BODY, px, py, scale);
         drawRows(ctx, player.walkFrame ? LEGS_WALK : LEGS_STAND, px, py + BODY.length * scale, scale);
-        /* 燃料。使い始めたら頭上に出し、満タンに戻ったら消す */
-        if (player.fuel < 1) {
-          var fw = 8 * scale;
-          var fx = px + Math.round((player.w - fw) / 2);
-          var fy = py - 3 * scale;
+        /* 頭上のバー。燃料は使い始めたら出し、満タンに戻ったら消す。
+           効いている強化はその色のバーが残り時間ぶん縮んでいき、最後の 3 秒は点滅する。
+           敵を避けている最中に HUD は見られないので、視線の先のキャラに出す */
+        var barW = 8 * scale;
+        var barX = px + Math.round((player.w - barW) / 2);
+        var barY = py - 3 * scale;
+        function headBar(frac, color) {
           ctx.fillStyle = 'rgba(32, 26, 19, 0.55)';
-          ctx.fillRect(fx - 1, fy - 1, fw + 2, scale + 2);
-          ctx.fillStyle = '#ffb13b';
-          ctx.fillRect(fx, fy, Math.round(fw * player.fuel), scale);
+          ctx.fillRect(barX - 1, barY - 1, barW + 2, scale + 2);
+          ctx.fillStyle = color;
+          ctx.fillRect(barX, barY, Math.round(barW * frac), scale);
+          barY -= 2 * scale;
         }
+        if (player.fuel < 1) headBar(player.fuel, '#ffb13b');
+        ['jet', 'dual'].forEach(function (key) {
+          if (buff[key] <= 0) return;
+          if (buff[key] < 3 && Math.floor(t * 6) % 2 === 0) {
+            barY -= 2 * scale;
+            return;
+          }
+          headBar(buff[key] / ITEMS[key].seconds, ITEMS[key].color);
+        });
         /* 腕と銃。肩を軸に狙いの向きへ回す。二丁拳銃の間は背中側の肩にもう 1 本 */
         drawGun(px + SHOULDER_COL * scale, py + SHOULDER_ROW * scale, player.gunAngle, false);
         if (buff.dual > 0) drawGun(px + (SPRITE_W - SHOULDER_COL) * scale, py + SHOULDER_ROW * scale, player.gunAngle2, true);

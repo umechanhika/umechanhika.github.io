@@ -62,7 +62,7 @@ html.tr-playing { overflow: hidden; }
   right: var(--gutter);
   left: var(--gutter);
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--s1);
@@ -71,27 +71,12 @@ html.tr-playing { overflow: hidden; }
 .tr-heart { display: inline-flex; color: #ff3b3b; }
 .tr-heart.is-lost { color: var(--rule); }
 .tr-heart svg { display: block; fill: currentColor; }
-/* 効いている強化と残り秒。色はアイテムごと */
-.tr-buffs { display: inline-flex; gap: var(--s1); margin-right: auto; }
-.tr-hearts + .tr-buffs { margin-left: calc(-1 * var(--s3) + var(--s2)); }
-.tr-buff {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
-  border: 1px solid var(--buff, var(--rule));
-  background: var(--card);
-  color: var(--buff, var(--ink));
-  font-size: var(--t-label);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.tr-buff[hidden] { display: none; }
 .tr-stat {
   display: inline-flex;
   align-items: center;
   min-height: 36px;
   padding: 0 12px;
+  white-space: nowrap;
   background: var(--fill);
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
