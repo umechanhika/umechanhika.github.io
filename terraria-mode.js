@@ -733,8 +733,13 @@
       }
     }
 
-    /* アイテムを落とす。落ちた場所が画面の外なら中へ寄せる */
+    /* アイテムを落とす。落ちた場所が画面の外なら中へ寄せる。
+       同じ種類が床に残っているうちは落とさない。拾わないと次が出ないので、床に溜まらず、
+       壊せるものが多い 1 周目でも強化が余らない */
     function dropItem(key, x, y) {
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].key === key) return;
+      }
       var def = ITEMS[key];
       var w = def.rows[0].length * scale;
       var h = def.rows.length * scale;
@@ -903,7 +908,8 @@
       floatText(s.x + s.w / 2, s.y, '+' + points, s.type.body);
       if (combo >= 3) floatText(player.x + player.w / 2, player.y - 8 * scale, combo + ' COMBO', '#e0a93a');
       shake = 0.1;
-      if (Math.random() < 0.12) dropItem('heart', s.x + s.w / 2, s.y);
+      /* ハートは体力が欠けているときだけ */
+      if (player.hearts < HEARTS && Math.random() < 0.12) dropItem('heart', s.x + s.w / 2, s.y);
       updateHud();
     }
 
