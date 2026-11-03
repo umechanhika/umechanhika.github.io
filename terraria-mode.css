@@ -33,6 +33,9 @@
 /* ページのスクロールはキャラを追う側が握る。指やホイールでは動かさない */
 html.tr-playing { overflow: hidden; }
 
+/* 地面ぶんの余白。この高さの土と草を terraria-mode.js が canvas に描き、キャラはその上に立つ */
+.tr-ground { height: 35vh; }
+
 /* canvas は inset だけだと固有サイズのまま置かれるので、画面いっぱいに広げる */
 .tr-canvas {
   position: fixed;
@@ -93,7 +96,10 @@ html.tr-playing { overflow: hidden; }
   top: calc(var(--head-h, 0px) + var(--s2) + 36px + var(--s3));
   left: var(--gutter);
   right: var(--gutter);
-  margin: 0;
+  margin: 0 auto;
+  max-width: var(--measure);
+  padding: var(--s1) var(--s2);
+  background: rgba(248, 243, 234, 0.92);
   text-align: center;
   color: var(--muted);
   text-wrap: pretty;

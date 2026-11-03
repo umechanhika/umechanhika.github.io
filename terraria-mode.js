@@ -200,6 +200,13 @@
     });
   }
 
+  /* タイルの位置から 0〜1 を決める。描くたびに変わらないので模様がちらつかない */
+  function noise(i, j) {
+    var n = (i * 73856093) ^ (j * 19349663);
+    n = Math.imul(n ^ (n >>> 13), 1274126177);
+    return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+  }
+
   /* --- 画面の部品 --- */
 
   function el(tag, className, text) {
@@ -292,6 +299,11 @@
     ui.appendChild(help);
     ui.appendChild(pad);
     ui.appendChild(done);
+    /* 地面。ページの下に土の層ぶんの余白を足し、キャラをその上に立たせる。
+       画面の端に立つと埋め込みやブラウザの下端のバーに脚が隠れるため */
+    var ground = el('div', 'tr-ground');
+    ground.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(ground);
     document.body.appendChild(canvas);
     document.body.appendChild(ui);
 
@@ -308,8 +320,14 @@
     var world = collectTargets();
     var total = world.leaves.length;
     var destroyed = 0;
-    var floorY = root.scrollHeight;
+    var groundH = 0;
+    var floorY = 0;
     var docW = root.scrollWidth;
+    function measureGround() {
+      groundH = ground.offsetHeight;
+      floorY = root.scrollHeight - groundH;
+    }
+    measureGround();
 
     var player = {
       w: SPRITE_W * scale,
@@ -408,7 +426,7 @@
         resizeRaf = 0;
         sizeCanvas();
         remeasure(world);
-        floorY = root.scrollHeight;
+        measureGround();
         docW = root.scrollWidth;
       });
     }
@@ -594,7 +612,7 @@
       var want = top;
       if (cy < top + vh * 0.35) want = cy - vh * 0.35;
       else if (cy > top + vh * 0.65) want = cy - vh * 0.65;
-      want = Math.min(Math.max(want, 0), floorY - vh);
+      want = Math.min(Math.max(want, 0), floorY + groundH - vh);
       if (Math.abs(want - top) > 0.5) window.scrollTo({ top: want, left: window.scrollX, behavior: 'instant' });
 
       /* 射撃 */
@@ -676,6 +694,11 @@
         pt.vy += 1100 * k * dt;
         pt.x += pt.vx * dt;
         pt.y += pt.vy * dt;
+        if (pt.y > floorY) {
+          pt.y = floorY;
+          pt.vy *= -0.4;
+          pt.vx *= 0.7;
+        }
       }
 
       draw(t, ang, shoulderX, shoulderY, muzzleX, muzzleY);
@@ -689,6 +712,35 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       ctx.imageSmoothingEnabled = false;
+
+      /* 地面。いちばん上が草、その下が土。模様はタイルの位置から決めるので揺れない */
+      var tile = 4 * scale;
+      var gy = Math.round(floorY - sy);
+      if (gy < window.innerHeight) {
+        ctx.fillStyle = '#6b4a2e';
+        ctx.fillRect(0, gy, window.innerWidth, window.innerHeight - gy);
+        var col0 = Math.floor(sx / tile);
+        var cols = Math.ceil(window.innerWidth / tile) + 1;
+        var rows = Math.ceil((window.innerHeight - gy) / tile);
+        for (var ci = 0; ci < cols; ci++) {
+          var tx = (col0 + ci) * tile - sx;
+          for (var rj = 0; rj < rows; rj++) {
+            var n = noise(col0 + ci, rj);
+            var ty = gy + rj * tile;
+            if (rj === 0) {
+              ctx.fillStyle = n < 0.5 ? '#4f9d3a' : '#3f8a2f';
+              ctx.fillRect(tx, ty, tile, tile);
+              if (n < 0.35) ctx.fillRect(tx + scale, ty - scale, scale, scale);
+            } else if (n < 0.18) {
+              ctx.fillStyle = '#7d5a39';
+              ctx.fillRect(tx, ty, tile, tile);
+            } else if (n > 0.9) {
+              ctx.fillStyle = '#58391f';
+              ctx.fillRect(tx + scale, ty + scale, 2 * scale, 2 * scale);
+            }
+          }
+        }
+      }
 
       /* レーザー */
       for (var i = 0; i < lasers.length; i++) {
@@ -772,6 +824,7 @@
         x.el.classList.remove('tr-gone');
         x.el.classList.remove('tr-hit');
       });
+      ground.remove();
       canvas.remove();
       ui.remove();
       root.classList.remove('tr-playing');
