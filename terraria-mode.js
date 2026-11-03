@@ -269,16 +269,16 @@
      テラリアのスライムと同じで、地面で少し休んでからキャラへ向かって跳ねる。
      大きさはマス数。速さ・跳ぶ高さ・休む時間・体力・倒した点が種類で違う。 */
   var SLIME_TYPES = {
-    green: { cw: 10, ch: 7, hp: 3, speed: 132, jump: 600, rest: 0.55, points: 10, body: '#5db13e', light: '#a3e27f', eye: '#1d3a12' },
-    blue: { cw: 12, ch: 8, hp: 6, speed: 160, jump: 660, rest: 0.42, points: 20, body: '#3d7ed6', light: '#9cc3f2', eye: '#122a55' },
-    red: { cw: 14, ch: 10, hp: 10, speed: 185, jump: 740, rest: 0.32, points: 40, body: '#d2473a', light: '#f2a497', eye: '#4a1410' }
+    green: { cw: 10, ch: 7, hp: 3, speed: 150, jump: 600, rest: 0.42, points: 10, body: '#5db13e', light: '#a3e27f', eye: '#1d3a12' },
+    blue: { cw: 12, ch: 8, hp: 6, speed: 180, jump: 660, rest: 0.36, points: 20, body: '#3d7ed6', light: '#9cc3f2', eye: '#122a55' },
+    red: { cw: 14, ch: 10, hp: 10, speed: 200, jump: 740, rest: 0.3, points: 40, body: '#d2473a', light: '#f2a497', eye: '#4a1410' }
   };
 
   /* n 番目のウェーブの構成。数と速さが少しずつ増え、3 から青、5 から赤が混ざる */
   function waveSpec(n) {
     return {
-      count: Math.min(20, 3 + 2 * (n - 1)),
-      interval: Math.max(0.5, 1.6 - 0.12 * (n - 1)),
+      count: Math.min(20, 4 + 2 * (n - 1)),
+      interval: Math.max(0.45, 1.3 - 0.1 * (n - 1)),
       speed: 1 + 0.07 * (n - 1),
       pick: function () {
         var r = Math.random();
@@ -360,24 +360,16 @@
       hearts.appendChild(heart);
       heartEls.push(heart);
     }
-    var fuel = el('div', 'tr-fuel');
-    var fuelBar = el('span', 'tr-fuel__bar');
-    fuel.appendChild(fuelBar);
     var waveEl = el('span', 'tr-stat');
     var scoreEl = el('span', 'tr-stat');
     var bestEl = el('span', 'tr-stat');
     var quit = el('button', 'tr-quit', 'やめる');
     quit.type = 'button';
     hud.appendChild(hearts);
-    hud.appendChild(fuel);
     hud.appendChild(waveEl);
     hud.appendChild(scoreEl);
     hud.appendChild(bestEl);
     hud.appendChild(quit);
-
-    var help = el('p', 'tr-help', coarse
-      ? 'スティックで移動、上に倒すとジャンプ。倒し続けると飛びます。画面をタップしても跳べます。射撃は自動です。'
-      : '← → で移動、↑ か Space でジャンプ。押し続けると飛びます。射撃は自動です。Esc でやめます。');
 
     var pad = el('div', 'tr-pad');
     var stick = el('div', 'tr-stick');
@@ -410,7 +402,6 @@
     over.appendChild(overActions);
 
     ui.appendChild(hud);
-    ui.appendChild(help);
     ui.appendChild(pad);
     ui.appendChild(banner);
     ui.appendChild(over);
@@ -491,7 +482,6 @@
     var best = readBest();
     var bannerTimer = 0;
     var runStart = performance.now();
-    var helpTimer = setTimeout(function () { help.classList.add('is-faded'); }, 9000);
 
     function resetPlayer() {
       player.x = arena.left + arena.width / 2 - player.w / 2;
@@ -542,7 +532,6 @@
       if (!name) return;
       e.preventDefault();
       keys[name] = down;
-      if (down) help.classList.add('is-faded');
     }
     function onKeyDown(e) { onKey(e, true); }
     function onKeyUp(e) { onKey(e, false); }
@@ -551,7 +540,6 @@
       if (e.button !== 0) return;
       e.preventDefault();
       tapJump = true;
-      help.classList.add('is-faded');
     }
     function onPointerUp() { tapJump = false; }
     function prevent(e) { e.preventDefault(); }
@@ -569,7 +557,6 @@
     makeStick(stick, stickKnob, 40, function (v, on) {
       stickV = v;
       stickOn = on;
-      if (on) help.classList.add('is-faded');
     });
 
     var resizeRaf = 0;
@@ -942,7 +929,6 @@
         player.walkFrame = 0;
         player.walkT = 0;
       }
-      fuelBar.style.transform = 'scaleX(' + player.fuel + ')';
 
       /* ウェーブ。全部倒したら少し置いて次へ */
       if (spec && toSpawn > 0) {
@@ -962,8 +948,6 @@
       }
 
       /* スライム。触れたら被弾 */
-      var pcx = player.x + player.w / 2;
-      var pcy = player.y + player.h / 2;
       for (var si = 0; si < slimes.length; si++) {
         var s = slimes[si];
         updateSlime(s, dt);
@@ -974,13 +958,16 @@
         }
       }
 
-      /* 自動射撃。向いている側でいちばん近いスライムを狙う。いなければ正面 */
+      /* 自動射撃。向いている側でいちばん近いスライムを狙う。いなければ正面。
+         銃は肩を軸に回るので、狙いも肩から測る。中心から測ると弾道が平行にずれて外れる */
+      var shoulderX = player.x + (player.facing > 0 ? SHOULDER_COL : SPRITE_W - SHOULDER_COL) * scale;
+      var shoulderY = player.y + SHOULDER_ROW * scale;
       var target = null;
       var bestD = 760 * k;
       for (var ti = 0; ti < slimes.length; ti++) {
         var c = slimes[ti];
-        var dx = c.x + c.w / 2 - pcx;
-        var dy = c.y + c.h / 2 - pcy;
+        var dx = c.x + c.w / 2 - shoulderX;
+        var dy = c.y + c.h / 2 - shoulderY;
         if (dx * player.facing <= 0) continue;
         var d = Math.sqrt(dx * dx + dy * dy);
         if (d < bestD) {
@@ -990,10 +977,8 @@
       }
       var ang = target ? Math.atan2(target.dy, Math.abs(target.dx)) : 0;
       ang = Math.max(-1.2, Math.min(1.2, ang));
-      player.gunAngle += (ang - player.gunAngle) * Math.min(1, dt * 18);
+      player.gunAngle += (ang - player.gunAngle) * Math.min(1, dt * 30);
       ang = player.gunAngle;
-      var shoulderX = player.x + (player.facing > 0 ? SHOULDER_COL : SPRITE_W - SHOULDER_COL) * scale;
-      var shoulderY = player.y + SHOULDER_ROW * scale;
       var muzzleX = shoulderX + player.facing * Math.cos(ang) * GUN_LEN * scale;
       var muzzleY = shoulderY + Math.sin(ang) * GUN_LEN * scale;
       shotCooldown -= dt;
@@ -1161,6 +1146,16 @@
         }
         drawRows(ctx, BODY, px, py, scale);
         drawRows(ctx, player.walkFrame ? LEGS_WALK : LEGS_STAND, px, py + BODY.length * scale, scale);
+        /* 燃料。使い始めたら頭上に出し、満タンに戻ったら消す */
+        if (player.fuel < 1) {
+          var fw = 8 * scale;
+          var fx = px + Math.round((player.w - fw) / 2);
+          var fy = py - 3 * scale;
+          ctx.fillStyle = 'rgba(32, 26, 19, 0.55)';
+          ctx.fillRect(fx - 1, fy - 1, fw + 2, scale + 2);
+          ctx.fillStyle = '#ffb13b';
+          ctx.fillRect(fx, fy, Math.round(fw * player.fuel), scale);
+        }
         /* 腕と銃。肩を軸に狙いの向きへ回す */
         ctx.translate(px + SHOULDER_COL * scale, py + SHOULDER_ROW * scale);
         ctx.rotate(player.gunAngle);
@@ -1200,7 +1195,6 @@
       if (!game) return;
       game = null;
       cancelAnimationFrame(raf);
-      clearTimeout(helpTimer);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('pointerup', onPointerUp);

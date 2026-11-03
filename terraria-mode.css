@@ -71,21 +71,6 @@ html.tr-playing { overflow: hidden; }
 .tr-heart { display: inline-flex; color: #ff3b3b; }
 .tr-heart.is-lost { color: var(--rule); }
 .tr-heart svg { display: block; fill: currentColor; }
-/* 燃料。飛べる残り時間 */
-.tr-fuel {
-  width: 48px;
-  height: 8px;
-  margin-right: auto;
-  border: 1px solid var(--card);
-  background: rgba(32, 26, 19, 0.35);
-}
-.tr-hearts + .tr-fuel { margin-left: calc(-1 * var(--s3)); }
-.tr-fuel__bar {
-  display: block;
-  height: 100%;
-  background: #ffb13b;
-  transform-origin: left center;
-}
 .tr-stat {
   display: inline-flex;
   align-items: center;
@@ -113,28 +98,11 @@ html.tr-playing { overflow: hidden; }
 .tr-retry { border-color: var(--route); color: var(--route); min-height: 48px; padding: 0 var(--s3); }
 .tr-retry:hover { background: var(--route); color: var(--route-ink); }
 
-/* 操作の説明。地面に立つキャラの頭上。動き始めるか、しばらく経ったら消す */
-.tr-help {
-  position: absolute;
-  bottom: calc(var(--tr-ground, 180px) + 96px);
-  left: var(--gutter);
-  right: var(--gutter);
-  margin: 0 auto;
-  max-width: var(--measure);
-  padding: var(--s1) var(--s2);
-  background: rgba(248, 243, 234, 0.92);
-  text-align: center;
-  color: var(--muted);
-  text-wrap: pretty;
-  transition: opacity 0.8s ease;
-}
-.tr-help.is-faded { opacity: 0; pointer-events: none; }
-
 /* ウェーブの表示。枠付きの箱で出て、少し見せて、消える */
 .tr-banner {
   position: absolute;
   left: 50%;
-  top: 32%;
+  top: 20%;
   margin: 0;
   padding: var(--s3) var(--s5);
   border: 1px solid var(--rule);
@@ -195,8 +163,6 @@ html.tr-playing { overflow: hidden; }
 @media (max-width: 720px) {
   .tr-hud { bottom: calc(var(--tr-ground, 180px) - 44px); gap: 4px; }
   .tr-stat, .tr-hud .tr-quit { min-height: 32px; padding: 0 8px; font-size: var(--t-label); }
-  .tr-fuel { width: 40px; }
-  .tr-help { bottom: calc(var(--tr-ground, 180px) + 64px); }
 }
 
 /* やられたとき。得点・ベスト・もう一回 */
