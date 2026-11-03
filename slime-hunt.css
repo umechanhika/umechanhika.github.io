@@ -118,15 +118,14 @@ html.sh-playing { overflow: hidden; }
 .sh-retry { border-color: var(--route); color: var(--route); min-height: 48px; padding: 0 var(--s3); }
 .sh-retry:hover { background: var(--route); color: var(--route-ink); }
 
-/* ウェーブの表示。枠付きの箱で出て、少し見せて、消える */
+/* ウェーブの表示。箱は付けず、文字だけを短く出して消す。
+   切り替わりはセクションが動くことで伝わるので、文字は添えるだけにする。
+   背景の上でも読めるよう、紙色の縁取りだけ付ける */
 .sh-banner {
   position: absolute;
   left: 50%;
-  top: 20%;
+  top: 22%;
   margin: 0;
-  padding: var(--s3) var(--s5);
-  border: 1px solid var(--rule);
-  background: var(--card);
   text-align: center;
   opacity: 0;
   transform: translate(-50%, -50%) translateY(8px);
@@ -143,8 +142,23 @@ html.sh-playing { overflow: hidden; }
   line-height: 1.2;
   color: var(--ink);
   white-space: nowrap;
+  text-shadow: 0 0 2px var(--paper), 0 0 6px var(--paper), 0 0 12px var(--paper);
 }
-.sh-banner__note { display: block; margin-top: var(--s1); color: var(--muted); white-space: nowrap; }
+.sh-banner__note {
+  display: block;
+  margin-top: var(--s1);
+  color: var(--ink-2);
+  white-space: nowrap;
+  text-shadow: 0 0 2px var(--paper), 0 0 6px var(--paper);
+}
+/* HUD の WAVE はウェーブが変わる瞬間に一度だけ跳ねる */
+.sh-stat.is-bump { animation: sh-bump 0.5s ease-out; }
+@keyframes sh-bump {
+  0% { transform: translateY(0); background: var(--route); color: var(--route-ink); }
+  30% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .sh-stat.is-bump { animation: none; } }
 
 /* スマホの操作盤。画面の中央下にスティック。ジャンプは上に倒すか、画面をタップ */
 .sh-pad {

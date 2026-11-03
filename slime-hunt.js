@@ -873,8 +873,12 @@
       toSpawn = spec.count;
       spawnTimer = 0.9;
       spawnLeft = Math.random() < 0.5;
-      showBanner('WAVE ' + wave, stageOf(wave).name + '　スライムが ' + spec.count + ' 匹来ます', 2.2);
+      showBanner('WAVE ' + wave, stageOf(wave).name + '　スライムが ' + spec.count + ' 匹来ます', 1.6);
       updateHud();
+      /* HUD の数字も切り替わりで一度だけ跳ねる */
+      waveEl.classList.remove('is-bump');
+      void waveEl.offsetWidth;
+      waveEl.classList.add('is-bump');
     }
 
     /* 次の舞台へ動き始める。動いている間はスライムも弾も無い。落ちているアイテムは持ち越す */
@@ -1420,44 +1424,44 @@
           ctx.translate(px * 2 + player.w, 0);
           ctx.scale(-1, 1);
         }
-        if (player.thrusting) {
-          var flameLen = 2 + Math.floor(Math.random() * 3);
+        /* 強化は残り時間をバーで見せず、効果そのものが終わり際に点滅して消える */
+        var jetOn = buff.jet > 0 && !(buff.jet < 3 && Math.floor(t * 6) % 2 === 0);
+        var dualOn = buff.dual > 0 && !(buff.dual < 3 && Math.floor(t * 6) % 2 === 0);
+        if (player.thrusting && (buff.jet <= 0 || jetOn)) {
+          /* 無限ジェット中は炎を大きく青く */
+          var flameLen = jetOn ? 5 + Math.floor(Math.random() * 4) : 2 + Math.floor(Math.random() * 3);
           for (var r = 0; r < flameLen; r++) {
-            ctx.fillStyle = buff.jet > 0
-              ? (r === 0 ? '#e0f0ff' : r === 1 ? '#8fc3ff' : '#4a8bff')
+            ctx.fillStyle = jetOn
+              ? (r < 2 ? '#e0f0ff' : r < 4 ? '#8fc3ff' : '#4a8bff')
               : (r === 0 ? '#ffe08a' : r === 1 ? '#ffb13b' : '#ff6a2a');
-            var fx = px + (r === 0 ? 0 : Math.random() < 0.5 ? 0 : 1) * scale;
-            var fw = (r === 0 ? 2 : 1) * scale;
+            var wide = jetOn ? r < 4 : r === 0;
+            var fx = px + (wide ? 0 : Math.random() < 0.5 ? 0 : 1) * scale;
+            var fw = (wide ? 2 : 1) * scale;
             ctx.fillRect(fx, py + (12 + r) * scale, fw, scale);
           }
         }
         drawRows(ctx, BODY, px, py, scale);
+        /* 無限ジェット中は背中のランプが青く光る。飛んでいないときも効いていると分かる */
+        if (jetOn) {
+          ctx.fillStyle = '#8fc3ff';
+          ctx.fillRect(px + 1 * scale, py + 8 * scale, scale, scale);
+          ctx.fillRect(px, py + 9 * scale, 2 * scale, scale);
+        }
         drawRows(ctx, player.walkFrame ? LEGS_WALK : LEGS_STAND, px, py + BODY.length * scale, scale);
-        /* 頭上のバー。燃料は使い始めたら出し、満タンに戻ったら消す。
-           効いている強化はその色のバーが残り時間ぶん縮んでいき、最後の 3 秒は点滅する。
+        /* 燃料。使い始めたら頭上に出し、満タンに戻ったら消す。
            敵を避けている最中に HUD は見られないので、視線の先のキャラに出す */
-        var barW = 8 * scale;
-        var barX = px + Math.round((player.w - barW) / 2);
-        var barY = py - 3 * scale;
-        function headBar(frac, color) {
+        if (player.fuel < 1) {
+          var barW = 8 * scale;
+          var barX = px + Math.round((player.w - barW) / 2);
+          var barY = py - 3 * scale;
           ctx.fillStyle = 'rgba(32, 26, 19, 0.55)';
           ctx.fillRect(barX - 1, barY - 1, barW + 2, scale + 2);
-          ctx.fillStyle = color;
-          ctx.fillRect(barX, barY, Math.round(barW * frac), scale);
-          barY -= 2 * scale;
+          ctx.fillStyle = '#ffb13b';
+          ctx.fillRect(barX, barY, Math.round(barW * player.fuel), scale);
         }
-        if (player.fuel < 1) headBar(player.fuel, '#ffb13b');
-        ['jet', 'dual'].forEach(function (key) {
-          if (buff[key] <= 0) return;
-          if (buff[key] < 3 && Math.floor(t * 6) % 2 === 0) {
-            barY -= 2 * scale;
-            return;
-          }
-          headBar(buff[key] / ITEMS[key].seconds, ITEMS[key].color);
-        });
-        /* 腕と銃。肩を軸に狙いの向きへ回す。二丁拳銃の間は背中側の肩にもう 1 本 */
+        /* 腕と銃。肩を軸に狙いの向きへ回す。二丁拳銃の間は背中側の肩にもう 1 本。終わり際は点滅 */
         drawGun(px + SHOULDER_COL * scale, py + SHOULDER_ROW * scale, player.gunAngle, false);
-        if (buff.dual > 0) drawGun(px + (SPRITE_W - SHOULDER_COL) * scale, py + SHOULDER_ROW * scale, player.gunAngle2, true);
+        if (dualOn) drawGun(px + (SPRITE_W - SHOULDER_COL) * scale, py + SHOULDER_ROW * scale, player.gunAngle2, true);
         ctx.restore();
       }
 
