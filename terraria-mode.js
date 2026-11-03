@@ -292,13 +292,12 @@
     };
   }
 
-  /* n 番目のウェーブの銃。進むほど連射が速くなり、3 から弾が 2 匹を貫き、5 から 3 方向に撃つ。
-     ウェーブが進むほど薙ぎ払う気持ちよさが増すようにする */
+  /* n 番目のウェーブの銃。進むほど連射が速くなり、3 から弾が 2 匹を貫く。
+     ウェーブが進むほど薙ぎ払う気持ちよさが増すようにする。3 方向に撃つ案はほぼ無敵になったので無し */
   function gunSpec(n) {
     return {
       interval: Math.max(0.05, 0.12 - 0.01 * (n - 1)),
-      pierce: n >= 3 ? 2 : 1,
-      spread: n >= 5 ? 3 : 1
+      pierce: n >= 3 ? 2 : 1
     };
   }
 
@@ -385,7 +384,6 @@
       ]
     }
   };
-  var ITEM_LIFE = 14;
 
   /* ドット絵のハート。HUD の残り体力に使う */
   var HEART_SVG = '<svg viewBox="0 0 7 6" width="14" height="12" aria-hidden="true" shape-rendering="crispEdges">' +
@@ -569,7 +567,6 @@
     var shotCooldown = 0;
     var muzzleFlash = 0;
     var combo = 0;
-    var comboTimer = 0;
     var shake = 0;
     var state = 'play';
     var deadTimer = 0;
@@ -732,7 +729,7 @@
         box.alive = false;
         box.el.classList.add('tr-gone');
         spawnDebris(box.x, box.y, box.w, box.h, 24, scale, box.colors);
-        dropItem(Math.random() < 0.5 ? 'dual' : 'jet', box.x + box.w / 2, Math.min(Math.max(box.y + box.h / 2, arena.top + 20), arena.floorY - 20));
+        if (Math.random() < 0.7) dropItem(Math.random() < 0.5 ? 'dual' : 'jet', box.x + box.w / 2, Math.min(Math.max(box.y + box.h / 2, arena.top + 20), arena.floorY - 20));
       }
     }
 
@@ -753,9 +750,10 @@
       drops++;
     }
 
-    /* 壊した掲載情報から落ちる種類と確率。大きいものほど確実に落ちる */
+    /* 壊した掲載情報から落ちる種類と確率。大きいものほど落ちやすい。
+       落ちたものは消えず、次の舞台にも持ち越すので、確率は低めにしてある */
     function dropFromTarget(t) {
-      var chance = t.el.tagName === 'IMG' ? 1 : t.platform ? 0.5 : 0.3;
+      var chance = t.el.tagName === 'IMG' ? 0.7 : t.platform ? 0.35 : 0.15;
       if (Math.random() >= chance) return;
       dropItem(Math.random() < 0.5 ? 'dual' : 'jet',
         t.x + t.w / 2, Math.min(Math.max(t.y + t.h / 2, arena.top + 20), arena.floorY - 20));
@@ -805,10 +803,9 @@
       updateHud();
     }
 
-    /* 次の舞台へ動き始める。動いている間はスライムもアイテムも無い */
+    /* 次の舞台へ動き始める。動いている間はスライムも弾も無い。落ちているアイテムは持ち越す */
     function startMove() {
       var next = wave + 1;
-      items = [];
       lasers = [];
       move = { from: window.scrollY, to: stageScroll(next), t: 0 };
       /* 動く距離が無ければ待たせない */
@@ -819,12 +816,13 @@
       }
     }
 
-    /* スクロール位置を変える。キャラは画面上の位置を保ったまま一緒に動かす */
+    /* スクロール位置を変える。キャラと落ちているアイテムは画面上の位置を保ったまま一緒に動かす */
     function scrollArenaTo(y) {
       var before = window.scrollY;
       window.scrollTo({ top: y, left: window.scrollX, behavior: 'instant' });
       var delta = window.scrollY - before;
       player.y += delta;
+      for (var i = 0; i < items.length; i++) items[i].y += delta;
       measureArena();
     }
 
@@ -897,9 +895,8 @@
 
     function killSlime(s) {
       spawnDebris(s.x, s.y, s.w, s.h, 24, scale, [s.type.body, s.type.light]);
-      /* 1.2 秒以内に続けて倒すとコンボ。倍率は 1 匹ごとに 1 割増し、最大 2 倍 */
-      combo = comboTimer > 0 ? combo + 1 : 1;
-      comboTimer = 1.2;
+      /* 被弾するまで続くコンボ。倍率は 1 匹ごとに 1 割増し、最大 2 倍 */
+      combo++;
       var mult = Math.min(2, 1 + 0.1 * (combo - 1));
       var points = Math.round(s.type.points * mult);
       score += points;
@@ -916,6 +913,7 @@
       if (t < player.invUntil) return;
       player.hearts--;
       player.invUntil = t + 1.5;
+      combo = 0;
       var dir = player.x + player.w / 2 > s.x + s.w / 2 ? 1 : -1;
       player.vx = dir * 320 * k;
       player.vy = -260 * k;
@@ -969,6 +967,7 @@
       floaters = [];
       buff.dual = 0;
       buff.jet = 0;
+      combo = 0;
       wave = 0;
       spec = null;
       toSpawn = 0;
@@ -1088,14 +1087,13 @@
       if (player.onGround) player.fuel = Math.min(1, player.fuel + dt / (FUEL_SECONDS * 0.6));
       if (buff.jet > 0) player.fuel = 1;
 
-      comboTimer = Math.max(0, comboTimer - dt);
       shake = Math.max(0, shake - dt);
 
       /* 強化の残り時間 */
       buff.dual = Math.max(0, buff.dual - dt);
       buff.jet = Math.max(0, buff.jet - dt);
 
-      /* アイテム。落ちて来て床に乗り、しばらく待って消える。触れたら拾う */
+      /* アイテム。落ちて来て床に乗り、拾うまで残る。触れたら拾う */
       for (var ii = items.length - 1; ii >= 0; ii--) {
         var it = items[ii];
         it.age += dt;
@@ -1106,10 +1104,6 @@
             it.y = arena.floorY - it.h;
             it.landed = true;
           }
-        }
-        if (it.age > ITEM_LIFE) {
-          items.splice(ii, 1);
-          continue;
         }
         if (player.x + player.w > it.x && player.x < it.x + it.w &&
             player.y + player.h > it.y && player.y < it.y + it.h) {
@@ -1225,19 +1219,16 @@
           : [{ dir: player.facing, x: frontX, ang: player.gunAngle }];
         for (var gi2 = 0; gi2 < guns.length; gi2++) {
           var gun = guns[gi2];
-          for (var si2 = 0; si2 < gunNow.spread; si2++) {
-            var offset = gunNow.spread > 1 ? (si2 - (gunNow.spread - 1) / 2) * 0.14 : 0;
-            var sa = gun.ang + offset + (Math.random() - 0.5) * 0.05;
-            lasers.push({
-              x: gun.x + gun.dir * Math.cos(gun.ang) * GUN_LEN * scale,
-              y: shoulderY + Math.sin(gun.ang) * GUN_LEN * scale,
-              vx: gun.dir * Math.cos(sa) * sp,
-              vy: Math.sin(sa) * sp,
-              age: 0,
-              pierce: gunNow.pierce,
-              hit: []
-            });
-          }
+          var sa = gun.ang + (Math.random() - 0.5) * 0.05;
+          lasers.push({
+            x: gun.x + gun.dir * Math.cos(gun.ang) * GUN_LEN * scale,
+            y: shoulderY + Math.sin(gun.ang) * GUN_LEN * scale,
+            vx: gun.dir * Math.cos(sa) * sp,
+            vy: Math.sin(sa) * sp,
+            age: 0,
+            pierce: gunNow.pierce,
+            hit: []
+          });
         }
       }
       muzzleFlash -= dt;
@@ -1388,10 +1379,9 @@
         drawRows(ctx, GRAVE, Math.round(graves[gi].x - sx), Math.round(graves[gi].y - sy), scale, GRAVE_PALETTE);
       }
 
-      /* アイテム。床の上で上下に揺れ、消える前は点滅する */
+      /* アイテム。床の上で上下に揺れる */
       for (var ii = 0; ii < items.length; ii++) {
         var it = items[ii];
-        if (it.age > ITEM_LIFE - 3 && Math.floor(t * 8) % 2 === 0) continue;
         var bob = it.landed ? Math.round(Math.sin(t * 4 + ii) * scale) : 0;
         drawRows(ctx, ITEMS[it.key].rows, Math.round(it.x - sx), Math.round(it.y - sy) - 2 * scale + bob, scale, ITEM_PALETTE);
       }
@@ -1508,6 +1498,7 @@
     /* 調整用の覗き窓。URL に ?tr-debug を付けたときだけ、状態を読める */
     if (new URLSearchParams(location.search).has('tr-debug')) {
       window.trDebugGive = function (key) { if (state === 'play') pickUp({ key: key }); };
+      window.trDebugDrop = function (key) { if (state === 'play') dropItem(key, player.x + player.w / 2 + 120 * k, player.y); };
       window.trDebugSkip = function () { if (state === 'play') { slimes = []; toSpawn = 0; waveGap = 0; } };
       window.trDebug = function () {
         return {
