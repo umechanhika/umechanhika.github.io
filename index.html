@@ -457,16 +457,18 @@
       </ul>
       <p class="site-foot__updated">最終更新：2026年9月</p>
     </div>
-    <!-- 末尾まで読んだ人へのおまけ。terraria-mode.js が草の上にキャラを描き、タップか Space で始まる -->
-    <div class="tr-stage" id="play">
-      <p class="tr-stage__lead">最後まで読んでくださってありがとうございます。おまけで遊べます。</p>
-      <button class="tr-stage__start" type="button" aria-label="テラリアモードで遊ぶ">
-        <canvas class="tr-stage__scene" aria-hidden="true"></canvas>
-        <span class="tr-stage__hint">タップか Space で開始</span>
-      </button>
-    </div>
   </div>
 </footer>
+
+<!-- 末尾まで読んだ人へのおまけ。ページの一番下がそのまま地面で、terraria-mode.js が草の上にキャラを描く。
+     触るか、末尾で Space を押すと始まる -->
+<div class="tr-stage" id="play">
+  <p class="tr-stage__lead">最後まで読んでくださってありがとうございます。おまけで遊べます。</p>
+  <button class="tr-stage__start" type="button" aria-label="テラリアモードで遊ぶ">
+    <canvas class="tr-stage__scene" aria-hidden="true"></canvas>
+    <span class="tr-stage__hint">タップか Space で開始</span>
+  </button>
+</div>
 
 <script src="route-map.js" defer></script>
 <script src="terraria-mode.js" defer></script>

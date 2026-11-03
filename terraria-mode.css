@@ -5,36 +5,45 @@
    色・間隔・文字の大きさは style.css のスケールから選ぶ。
    --------------------------------------------------------------- */
 
-/* --- 末尾のステージ。草の上にキャラが立っていて、押すと始まる --- */
+/* --- 末尾のステージ。ページの一番下が地面で、草の上にキャラが立っていて、触ると始まる --- */
 
-.tr-stage { margin-top: var(--s5); }
-.tr-stage__lead { margin: 0 0 var(--s2); text-align: center; font-size: var(--t-meta); color: var(--muted); }
+.tr-stage { margin-top: var(--s4); background: var(--paper); }
+.tr-stage__lead {
+  margin: 0;
+  padding: 0 var(--gutter) var(--s2);
+  background: var(--paper);
+  text-align: center;
+  font-size: var(--t-meta);
+  color: var(--muted);
+}
 .tr-stage__start {
   position: relative;
   display: block;
   width: 100%;
-  padding: 0;
-  border: 1px solid var(--rule);
-  background: var(--card);
+  padding: 0 0 env(safe-area-inset-bottom, 0px);
+  border: 0;
+  /* 端末下端の safe-area の帯だけ土の色にして地面に見せる。全体を土にすると、
+     高解像度の端末で canvas の上端に小数ピクセルの隙間が出て、線に見える */
+  background: linear-gradient(#6b4a2e, #6b4a2e) bottom / 100% env(safe-area-inset-bottom, 0px) no-repeat, var(--paper);
   cursor: pointer;
   font: inherit;
 }
-.tr-stage__start:hover,
-.tr-stage__start:focus-visible { border-color: var(--route); }
-.tr-stage__scene { display: block; width: 100%; height: 180px; image-rendering: pixelated; }
+/* 遊んでいる間は案内を隠す。闘技場の背景に文字が残らないように */
+html.tr-playing .tr-stage__lead,
+html.tr-playing .tr-stage__hint { visibility: hidden; }
+.tr-stage__start:focus-visible { outline: 2px solid var(--route); outline-offset: -2px; }
+/* 高さは terraria-mode.js が画面高から決める。これは読み込み直後の仮の値 */
+.tr-stage__scene { display: block; width: 100%; height: 280px; image-rendering: pixelated; }
 .tr-stage__hint {
   position: absolute;
   left: 50%;
-  top: var(--s3);
+  top: var(--s2);
   transform: translateX(-50%);
   padding: 2px 10px;
   background: var(--fill);
   color: var(--ink-2);
   font-size: var(--t-label);
   white-space: nowrap;
-}
-@media (max-width: 720px) {
-  .tr-stage__scene { height: 140px; }
 }
 
 /* --- 遊んでいる間 --- */

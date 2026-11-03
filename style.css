@@ -527,7 +527,8 @@ a.ref:hover .ref__title { color: var(--route); }
 .site-foot {
   margin-top: var(--s6);
   border-top: 1px solid var(--rule);
-  padding-block: var(--s4) calc(var(--s4) + env(safe-area-inset-bottom, 0px));
+  /* 下の余白に safe-area を足さない。ページの末尾はこの下のおまけの地面で、そちらが受け持つ */
+  padding-block: var(--s4);
 }
 .site-foot__inner { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); align-items: center; justify-content: space-between; }
 .site-foot__links { list-style: none; display: flex; flex-wrap: wrap; gap: var(--s3); margin: 0; padding: 0; font-size: var(--t-meta); }

@@ -1538,8 +1538,12 @@
     { type: SLIME_TYPES.green, u: 0.2, face: 1, phase: 0 },
     { type: SLIME_TYPES.blue, u: 0.78, face: -1, phase: 1.7 }
   ];
+  /* 地面の高さはゲームと同じ画面高の 22%。末尾で始めたとき、地面が動かずに地続きに見える */
+  var SKY_HEIGHT = 110;
   function drawScene(now) {
     sceneRaf = 0;
+    var groundH = Math.round(window.innerHeight * 0.22);
+    scene.style.height = (groundH + SKY_HEIGHT) + 'px';
     var w = scene.clientWidth;
     var h = scene.clientHeight;
     if (!w || !h) return;
@@ -1551,9 +1555,9 @@
     var s = w < 720 ? 2 : 3;
     var t = now / 1000;
     sceneCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    sceneCtx.clearRect(0, 0, w, h);
+    sceneCtx.fillStyle = '#f8f3ea';
+    sceneCtx.fillRect(0, 0, w, h);
     sceneCtx.imageSmoothingEnabled = false;
-    var groundH = Math.round(h * 0.42);
     var floorY = h - groundH;
     drawGround(sceneCtx, s, floorY, w, groundH);
     for (var i = 0; i < sceneSlimes.length; i++) {
