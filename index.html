@@ -348,6 +348,16 @@
           <p>勤怠の過不足を先読みして、毎日少しずつ調整できるようにするWebアプリです。足りない分を残業しようにも、働ける時間には限度があります。残業した分をまとめて早上がりするのも簡単ではありません。毎日少しずつなら調整できる、という考え方で作りました。</p>
         </div>
       </article>
+
+      <article class="card">
+        <img class="card__shot" src="assets/works-terraria.png" alt="テラリアモードの画面。ドット絵のドロイドがレーザーを撃ち、跳ねて来るスライムと戦っている" width="1200" height="630" loading="lazy">
+        <div class="card__body">
+          <h3 class="card__title"><a href="#play">テラリアモード</a></h3>
+          <p class="card__meta">このサイトのおまけ</p>
+          <p>このページの一番下で遊べる小さなゲームです。ドット絵の自分を動かして、跳ねて来るスライムを撃ちながら、ページの掲載情報を壊して強化を拾います。ウェーブが進むごとに舞台が上のセクションへ移ります。遊び終わると、壊したものは全部元に戻ります。</p>
+          <p class="card__links"><a href="#play">遊びに行く</a></p>
+        </div>
+      </article>
     </div>
   </div>
 </section>
@@ -447,12 +457,12 @@
       </ul>
       <p class="site-foot__updated">最終更新：2026年9月</p>
     </div>
-    <!-- 末尾まで読んだ人へのおまけ。terraria-mode.js が末尾に着いたときに見せる -->
-    <div class="tr-launch-row">
-      <p>最後まで読んでくださってありがとうございます。おまけで遊べます。</p>
-      <button class="btn tr-launch" type="button">
-        <canvas class="tr-launch__icon" width="28" height="48" aria-hidden="true"></canvas>
-        テラリアモードで遊ぶ
+    <!-- 末尾まで読んだ人へのおまけ。terraria-mode.js が草の上にキャラを描き、タップか Space で始まる -->
+    <div class="tr-stage" id="play">
+      <p class="tr-stage__lead">最後まで読んでくださってありがとうございます。おまけで遊べます。</p>
+      <button class="tr-stage__start" type="button" aria-label="テラリアモードで遊ぶ">
+        <canvas class="tr-stage__scene" aria-hidden="true"></canvas>
+        <span class="tr-stage__hint">タップか Space で開始</span>
       </button>
     </div>
   </div>

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>テラリアモードの紹介画像の版下</title>
+<style>
+/* 1200×630 の版下。「つくったもの」のカード用。
+   ドット絵と色は terraria-mode.js から写している。キャラやスライムを変えたら両方直す。
+
+   書き出し（リポジトリ直下で python3 -m http.server 8765 を動かした状態で）:
+   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+     --headless --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
+     --window-size=1200,630 --virtual-time-budget=2000 \
+     --screenshot=assets/works-terraria.png http://localhost:8765/tools/works-terraria.html */
+* { margin: 0; padding: 0; }
+body { width: 1200px; height: 630px; overflow: hidden; background: #f8f3ea; }
+canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1200" height="630"></canvas>
+<script>
+(function () {
+  'use strict';
+var PALETTE = {
+  A: '#8fc34a', /* ドロイドの緑。頭と手 */
+  D: '#161616', /* 髪 */
+  W: '#ececec', /* 目とシャツ */
+  K: '#333333', /* スーツ */
+  P: '#161616', /* ズボン */
+  N: '#e0e0e0', /* スニーカー */
+  O: '#8a8f94', /* スニーカーの底。紙色に白が溶けないための縁 */
+  J: '#7d8591', /* ジェットパック */
+  L: '#c9d1dc', /* ジェットパックの光と銃身の先 */
+  R: '#d9412f', /* ノズル */
+  G: '#4a5160', /* 銃身 */
+  M: '#ff3b3b'  /* 銃口 */
+};
+var BODY = [
+  '.....A...A....',
+  '....DDDDDDA...',
+  '...DDDDAAAAA..',
+  '...DAAAAWAWA..',
+  '...AAAAAAAAA..',
+  '...AAAAAAAAA..',
+  'JJ.KKKAAAKKK..',
+  'JL.KKKWAWKKK..',
+  'JJ.KKKWWWKKK..',
+  'JJ.KKKWWWKKK..',
+  'JJ.KKKWWWKKK..',
+  'RR.KKKWWWKKK..',
+  '...KKKWWWKKK..',
+  '...KKKWWWKKK..',
+  '...KKKWWWKKK..',
+  '...KKKWWWKKK..',
+  '...KKKWWWKKK..'
+];
+var LEGS_STAND = [
+  '....PP..PP....',
+  '....PP..PP....',
+  '....PP..PP....',
+  '....PP..PP....',
+  '....PP..PP....',
+  '..NNNN..NNNN..',
+  '..OOOO..OOOO..'
+];
+var SLIME_TYPES = {
+  green: { cw: 10, ch: 7, hp: 3, speed: 140, jump: 600, rest: 0.45, points: 10, body: '#5db13e', light: '#a3e27f', eye: '#1d3a12' },
+  blue: { cw: 12, ch: 8, hp: 4, speed: 170, jump: 660, rest: 0.38, points: 20, body: '#3d7ed6', light: '#9cc3f2', eye: '#122a55' },
+  red: { cw: 14, ch: 10, hp: 6, speed: 190, jump: 740, rest: 0.32, points: 40, body: '#d2473a', light: '#f2a497', eye: '#4a1410' }
+};
+var ITEM_PALETTE = {
+  G: '#4a5160', L: '#c9d1dc', M: '#ff3b3b', K: '#2b2b2b',
+  J: '#7d8591', R: '#d9412f', F: '#ffb13b', Y: '#ffe08a',
+  H: '#ff3b3b', P: '#ff8a8a'
+};
+var ITEMS = {
+  dual: {
+    name: '二丁拳銃', color: '#6b8cff', seconds: 10,
+    rows: [
+      '.GGGGGGLM',
+      '.GGGGGGLM',
+      '..KK.....',
+      '.........',
+      'MLGGGGGG.',
+      'MLGGGGGG.',
+      '.....KK..'
+    ]
+  },
+  jet: {
+    name: '無限ジェット', color: '#ffb13b', seconds: 10,
+    rows: [
+      '.JJJJ.',
+      'JJLJJJ',
+      'JJJJJJ',
+      'JJJJJJ',
+      'JJJJJJ',
+      'RR..RR',
+      'FF..FF',
+      'YF..FY',
+      '.Y..Y.'
+    ]
+  },
+  heart: {
+    name: 'ハート', color: '#ff3b3b', seconds: 0,
+    rows: [
+      '.HH.HH.',
+      'HPHHHHH',
+      'HHHHHHH',
+      '.HHHHH.',
+      '..HHH..',
+      '...H...'
+    ]
+  }
+};
+var GRAVE_PALETTE = { G: '#8d9196', D: '#5c6066', L: '#b9bdc2' };
+var GRAVE = [
+  '..LGGG..',
+  '.LGGGGG.',
+  'LGGGGGGG',
+  'LGGDDGGG',
+  'LGDDDDGG',
+  'LGGDDGGG',
+  'LGGDDGGG',
+  'LGGGGGGG',
+  'LGGGGGGG',
+  'DDDDDDDD'
+];
+  var SPRITE_W = 14;
+  var SHOULDER_COL = 9;
+  var SHOULDER_ROW = 7;
+
+  var ctx = document.getElementById('c').getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  function noise(i, j) {
+    var n = (i * 73856093) ^ (j * 19349663);
+    n = Math.imul(n ^ (n >>> 13), 1274126177);
+    return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+  }
+  function drawRows(rows, ox, oy, scale, palette) {
+    for (var r = 0; r < rows.length; r++) {
+      for (var c = 0; c < rows[r].length; c++) {
+        var ch = rows[r].charAt(c);
+        if (ch === '.') continue;
+        ctx.fillStyle = palette[ch];
+        ctx.fillRect(ox + c * scale, oy + r * scale, scale, scale);
+      }
+    }
+  }
+  function drawGround(scale, top, width, height) {
+    var tile = 4 * scale;
+    ctx.fillStyle = '#6b4a2e';
+    ctx.fillRect(0, top, width, height);
+    for (var ci = 0; ci < Math.ceil(width / tile) + 1; ci++) {
+      for (var rj = 0; rj < Math.ceil(height / tile); rj++) {
+        var nz = noise(ci, rj);
+        var tx = ci * tile;
+        var ty = top + rj * tile;
+        if (rj === 0) {
+          ctx.fillStyle = nz < 0.5 ? '#4f9d3a' : '#3f8a2f';
+          ctx.fillRect(tx, ty, tile, tile);
+          if (nz < 0.35) ctx.fillRect(tx + scale, ty - scale, scale, scale);
+        } else if (nz < 0.18) {
+          ctx.fillStyle = '#7d5a39';
+          ctx.fillRect(tx, ty, tile, tile);
+        } else if (nz > 0.9) {
+          ctx.fillStyle = '#58391f';
+          ctx.fillRect(tx + scale, ty + scale, 2 * scale, 2 * scale);
+        }
+      }
+    }
+  }
+  function drawSlime(scale, type, cx, by, face, squash) {
+    var w = type.cw * scale;
+    var h = type.ch * scale;
+    ctx.save();
+    ctx.translate(Math.round(cx), Math.round(by));
+    ctx.scale(1 + squash, 1 - squash);
+    ctx.globalAlpha = 0.9;
+    var ox = -Math.round(w / 2);
+    var top = -h;
+    ctx.fillStyle = type.body;
+    for (var r = 0; r < type.ch; r++) {
+      var inset = r === 0 ? 2 : r === 1 ? 1 : r === type.ch - 1 ? 1 : 0;
+      ctx.fillRect(ox + inset * scale, top + r * scale, (type.cw - 2 * inset) * scale, scale);
+    }
+    ctx.fillStyle = type.light;
+    ctx.fillRect(ox + 2 * scale, top + scale, 2 * scale, scale);
+    ctx.fillRect(ox + scale, top + 2 * scale, scale, scale);
+    ctx.fillStyle = type.eye;
+    var ey = top + Math.floor(type.ch / 2) * scale;
+    ctx.fillRect(ox + (face > 0 ? type.cw - 4 : 3) * scale, ey, scale, scale);
+    ctx.fillRect(ox + (face > 0 ? type.cw - 2 : 1) * scale, ey, scale, scale);
+    ctx.restore();
+  }
+  function drawGun(scale, x, y, angle, flash) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = PALETTE.K; ctx.fillRect(0, -scale, 6 * scale, 2 * scale);
+    ctx.fillStyle = PALETTE.G; ctx.fillRect(6 * scale, -2 * scale, 7 * scale, 3 * scale);
+    ctx.fillStyle = PALETTE.J; ctx.fillRect(8 * scale, scale, 2 * scale, 2 * scale);
+    ctx.fillStyle = PALETTE.A; ctx.fillRect(5 * scale, -scale, 2 * scale, 2 * scale);
+    ctx.fillStyle = PALETTE.L; ctx.fillRect(13 * scale, -scale, 3 * scale, 2 * scale);
+    ctx.fillStyle = PALETTE.M; ctx.fillRect(16 * scale, -scale, scale, 2 * scale);
+    if (flash) { ctx.fillStyle = '#ffe08a'; ctx.fillRect(17 * scale, -2 * scale, 3 * scale, 4 * scale); }
+    ctx.restore();
+  }
+  function drawLaser(scale, x, y, angle) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = '#ff3b3b'; ctx.fillRect(-7 * scale, -scale, 7 * scale, 2 * scale);
+    ctx.fillStyle = '#ffd0d0'; ctx.fillRect(-6 * scale, -scale / 2, 5 * scale, scale);
+    ctx.restore();
+  }
+
+  var S = 7;
+  var W = 1200;
+  var H = 630;
+  var groundTop = 470;
+  drawGround(S, groundTop, W, H - groundTop);
+
+  /* 墓石。前に死んだ跡 */
+  drawRows(GRAVE, 120, groundTop + S - 10 * S, S, GRAVE_PALETTE);
+
+  /* 落ちている強化 */
+  drawRows(ITEMS.heart.rows, 300, groundTop - 6 * S - 2 * S, S, ITEM_PALETTE);
+  drawRows(ITEMS.dual.rows, 975, groundTop - 7 * S - 2 * S, S, ITEM_PALETTE);
+
+  /* 主人公。空中でジェットを噴かしながら右を撃つ */
+  var px = 380;
+  var py = 150;
+  for (var f = 0; f < 4; f++) {
+    ctx.fillStyle = f === 0 ? '#ffe08a' : f === 1 ? '#ffb13b' : '#ff6a2a';
+    ctx.fillRect(px + (f % 2) * S, py + (12 + f) * S, (f === 0 ? 2 : 1) * S, S);
+  }
+  drawRows(BODY, px, py, S, PALETTE);
+  drawRows(LEGS_STAND, px, py + BODY.length * S, S, PALETTE);
+  var ang = 0.32;
+  drawGun(S, px + SHOULDER_COL * S, py + SHOULDER_ROW * S, ang, true);
+
+  /* 弾。銃口から斜め下へ */
+  var mx = px + SHOULDER_COL * S + Math.cos(ang) * 17 * S;
+  var my = py + SHOULDER_ROW * S + Math.sin(ang) * 17 * S;
+  [110, 240, 370].forEach(function (d) {
+    drawLaser(S, mx + Math.cos(ang) * d, my + Math.sin(ang) * d, ang);
+  });
+
+  /* スライム。右から跳ねて来る */
+  drawSlime(S, SLIME_TYPES.green, 760, groundTop + S, -1, 0.12);
+  drawSlime(S, SLIME_TYPES.blue, 900, groundTop + S - 90, -1, -0.12);
+  drawSlime(S, SLIME_TYPES.red, 1110, groundTop + S, -1, 0.05);
+
+  /* 倒した破片 */
+  ctx.fillStyle = '#5db13e';
+  [[640, 300], [668, 262], [700, 320], [655, 350], [720, 280], [690, 390]].forEach(function (p) {
+    ctx.fillRect(p[0], p[1], S, S);
+  });
+  ctx.fillStyle = '#a3e27f';
+  [[625, 330], [705, 345], [740, 310]].forEach(function (p) {
+    ctx.fillRect(p[0], p[1], S, S);
+  });
+})();
+</script>
+</body>
+</html>

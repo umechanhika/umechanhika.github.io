@@ -15,10 +15,16 @@
   'use strict';
 
   var root = document.documentElement;
-  var launchRow = document.querySelector('.tr-launch-row');
-  var launch = document.querySelector('.tr-launch');
-  var launchIcon = document.querySelector('.tr-launch__icon');
-  if (!launchRow || !launch || !launchIcon) throw new Error('terraria-mode: 起動ボタンが見つからない');
+  var stage = document.querySelector('.tr-stage');
+  var launch = document.querySelector('.tr-stage__start');
+  var scene = document.querySelector('.tr-stage__scene');
+  if (!stage || !launch || !scene) throw new Error('terraria-mode: 末尾のステージが見つからない');
+
+  /* アクセス解析。GA4 が読み込まれていないとき（広告ブロックなど）は何もしない */
+  function track(name, params) {
+    if (typeof window.gtag !== 'function') return;
+    window.gtag('event', name, params || {});
+  }
 
   /* --- ドット絵 ---------------------------------------------------
      サイト主のアイコン（黒いスーツに白いシャツのドロイド）をドットに起こしたもの。
@@ -97,28 +103,90 @@
     }
   }
 
-  /* 起動ボタンの中のキャラ */
-  (function drawLaunchIcon() {
-    var ctx = launchIcon.getContext('2d');
-    var scale = launchIcon.width / SPRITE_W;
-    drawRows(ctx, BODY, 0, 0, scale);
-    drawRows(ctx, LEGS_STAND, 0, BODY.length * scale, scale);
-  })();
+  /* 腕と銃。(x, y) が肩。flip は背中側の銃で、反対を向かせる */
+  function drawGunAt(ctx, scale, x, y, angle, flip, flash) {
+    ctx.save();
+    ctx.translate(x, y);
+    if (flip) ctx.scale(-1, 1);
+    ctx.rotate(angle);
+    ctx.fillStyle = PALETTE.K;
+    ctx.fillRect(0, -scale, 6 * scale, 2 * scale);
+    ctx.fillStyle = PALETTE.G;
+    ctx.fillRect(6 * scale, -2 * scale, 7 * scale, 3 * scale);
+    ctx.fillStyle = PALETTE.J;
+    ctx.fillRect(8 * scale, scale, 2 * scale, 2 * scale);
+    ctx.fillStyle = PALETTE.A;
+    ctx.fillRect(5 * scale, -scale, 2 * scale, 2 * scale);
+    ctx.fillStyle = PALETTE.L;
+    ctx.fillRect(13 * scale, -scale, 3 * scale, 2 * scale);
+    ctx.fillStyle = PALETTE.M;
+    ctx.fillRect(16 * scale, -scale, scale, 2 * scale);
+    if (flash) {
+      ctx.fillStyle = '#ffe08a';
+      ctx.fillRect(17 * scale, -2 * scale, 3 * scale, 4 * scale);
+    }
+    ctx.restore();
+  }
 
-  /* --- 末尾まで読んだら起動ボタンを出す --- */
+  /* 地面。いちばん上が草、その下が土。模様はタイルの位置から決めるので揺れない */
+  function drawGround(ctx, scale, top, width, height) {
+    var tile = 4 * scale;
+    ctx.fillStyle = '#6b4a2e';
+    ctx.fillRect(0, top, width, height);
+    var cols = Math.ceil(width / tile) + 1;
+    var rows = Math.ceil(height / tile);
+    for (var ci = 0; ci < cols; ci++) {
+      var tx = ci * tile;
+      for (var rj = 0; rj < rows; rj++) {
+        var nz = noise(ci, rj);
+        var ty = top + rj * tile;
+        if (rj === 0) {
+          ctx.fillStyle = nz < 0.5 ? '#4f9d3a' : '#3f8a2f';
+          ctx.fillRect(tx, ty, tile, tile);
+          if (nz < 0.35) ctx.fillRect(tx + scale, ty - scale, scale, scale);
+        } else if (nz < 0.18) {
+          ctx.fillStyle = '#7d5a39';
+          ctx.fillRect(tx, ty, tile, tile);
+        } else if (nz > 0.9) {
+          ctx.fillStyle = '#58391f';
+          ctx.fillRect(tx + scale, ty + scale, 2 * scale, 2 * scale);
+        }
+      }
+    }
+  }
+
+  /* スライム。(cx, by) が足元の中心。squash は着地と跳躍のつぶれ、flash は被弾の白 */
+  function drawSlimeAt(ctx, scale, type, cx, by, face, squash, flash) {
+    var w = type.cw * scale;
+    var h = type.ch * scale;
+    ctx.save();
+    ctx.translate(Math.round(cx), Math.round(by));
+    ctx.scale(1 + squash, 1 - squash);
+    ctx.globalAlpha = 0.9;
+    var ox = -Math.round(w / 2);
+    var top = -h;
+    ctx.fillStyle = flash ? '#ffffff' : type.body;
+    for (var r = 0; r < type.ch; r++) {
+      var inset = r === 0 ? 2 : r === 1 ? 1 : r === type.ch - 1 ? 1 : 0;
+      ctx.fillRect(ox + inset * scale, top + r * scale, (type.cw - 2 * inset) * scale, scale);
+    }
+    if (!flash) {
+      ctx.fillStyle = type.light;
+      ctx.fillRect(ox + 2 * scale, top + scale, 2 * scale, scale);
+      ctx.fillRect(ox + 1 * scale, top + 2 * scale, scale, scale);
+      ctx.fillStyle = type.eye;
+      var ey = top + Math.floor(type.ch / 2) * scale;
+      var e1 = face > 0 ? type.cw - 4 : 3;
+      var e2 = face > 0 ? type.cw - 2 : 1;
+      ctx.fillRect(ox + e1 * scale, ey, scale, scale);
+      ctx.fillRect(ox + e2 * scale, ey, scale, scale);
+    }
+    ctx.restore();
+  }
 
   function atBottom() {
     return window.innerHeight + window.scrollY >= root.scrollHeight - 24;
   }
-  function revealIfBottom() {
-    if (!atBottom()) return;
-    launchRow.classList.add('is-ready');
-    window.removeEventListener('scroll', revealIfBottom);
-    window.removeEventListener('resize', revealIfBottom);
-  }
-  window.addEventListener('scroll', revealIfBottom, { passive: true });
-  window.addEventListener('resize', revealIfBottom);
-  revealIfBottom();
 
   /* --- 壊せるもの ---------------------------------------------------
      葉: 見出し・段落・リスト項目・画像など、それ以上分けない要素。1 つずつ壊す。
@@ -127,7 +195,7 @@
   var BOX = '.card, .ref, .job';
   /* 足場になる葉。文章の上には乗れない */
   var PLATFORM_LEAF = 'img, dl > div, a.channel, a.btn, .tags li';
-  var SKIP = '.site-head, .skip, .route-bus, .tr-launch-row, .tr-ui';
+  var SKIP = '.site-head, .skip, .route-bus, .tr-stage, .tr-ui';
   var TEXT_COLORS = ['#201a13', '#4d443a', '#6f6353'];
   var FRAME_COLORS = ['#e3dac8', '#efe7d6', '#fffdf6'];
 
@@ -433,6 +501,7 @@
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     var startScroll = window.scrollY;
     root.classList.add('tr-playing');
+    track('terraria_start');
 
     /* --- 画面の部品を組む --- */
 
@@ -934,6 +1003,7 @@
 
     function die() {
       state = 'dead';
+      track('terraria_over', { score: score, wave: wave, seconds: Math.round((performance.now() - runStart) / 1000) });
       deadTimer = 1.0;
       player.dead = true;
       spawnDebris(player.x, player.y, player.w, player.h, 40, scale, [PALETTE.A, PALETTE.K, PALETTE.W, PALETTE.P]);
@@ -1292,57 +1362,11 @@
     /* --- 描く --- */
 
     function drawSlime(s, sx, sy) {
-      var type = s.type;
-      var cx = Math.round(s.x + s.w / 2 - sx);
-      var by = Math.round(s.y + s.h - sy);
-      ctx.save();
-      ctx.translate(cx, by);
-      ctx.scale(1 + s.squash, 1 - s.squash);
-      ctx.globalAlpha = 0.9;
-      var ox = -Math.round(s.w / 2);
-      var top = -s.h;
-      ctx.fillStyle = s.flash > 0 ? '#ffffff' : type.body;
-      for (var r = 0; r < type.ch; r++) {
-        var inset = r === 0 ? 2 : r === 1 ? 1 : r === type.ch - 1 ? 1 : 0;
-        ctx.fillRect(ox + inset * scale, top + r * scale, (type.cw - 2 * inset) * scale, scale);
-      }
-      if (s.flash <= 0) {
-        ctx.fillStyle = type.light;
-        ctx.fillRect(ox + 2 * scale, top + scale, 2 * scale, scale);
-        ctx.fillRect(ox + 1 * scale, top + 2 * scale, scale, scale);
-        ctx.fillStyle = type.eye;
-        var ey = top + Math.floor(type.ch / 2) * scale;
-        var e1 = s.face > 0 ? type.cw - 4 : 3;
-        var e2 = s.face > 0 ? type.cw - 2 : 1;
-        ctx.fillRect(ox + e1 * scale, ey, scale, scale);
-        ctx.fillRect(ox + e2 * scale, ey, scale, scale);
-      }
-      ctx.restore();
+      drawSlimeAt(ctx, scale, s.type, s.x + s.w / 2 - sx, s.y + s.h - sy, s.face, s.squash, s.flash > 0);
     }
 
-    /* 腕と銃。(x, y) が肩。flip は背中側の銃で、反対を向かせる */
     function drawGun(x, y, angle, flip) {
-      ctx.save();
-      ctx.translate(x, y);
-      if (flip) ctx.scale(-1, 1);
-      ctx.rotate(angle);
-      ctx.fillStyle = PALETTE.K;
-      ctx.fillRect(0, -scale, 6 * scale, 2 * scale);
-      ctx.fillStyle = PALETTE.G;
-      ctx.fillRect(6 * scale, -2 * scale, 7 * scale, 3 * scale);
-      ctx.fillStyle = PALETTE.J;
-      ctx.fillRect(8 * scale, scale, 2 * scale, 2 * scale);
-      ctx.fillStyle = PALETTE.A;
-      ctx.fillRect(5 * scale, -scale, 2 * scale, 2 * scale);
-      ctx.fillStyle = PALETTE.L;
-      ctx.fillRect(13 * scale, -scale, 3 * scale, 2 * scale);
-      ctx.fillStyle = PALETTE.M;
-      ctx.fillRect(16 * scale, -scale, scale, 2 * scale);
-      if (muzzleFlash > 0) {
-        ctx.fillStyle = '#ffe08a';
-        ctx.fillRect(17 * scale, -2 * scale, 3 * scale, 4 * scale);
-      }
-      ctx.restore();
+      drawGunAt(ctx, scale, x, y, angle, flip, muzzleFlash > 0);
     }
 
     function draw(t) {
@@ -1354,31 +1378,9 @@
       if (shake > 0) ctx.translate(Math.round((Math.random() - 0.5) * 6 * k), Math.round((Math.random() - 0.5) * 6 * k));
       ctx.imageSmoothingEnabled = false;
 
-      /* 地面。いちばん上が草、その下が土。模様はタイルの位置から決めるので揺れない */
-      var tile = 4 * scale;
+      /* 地面 */
       var gy = Math.round(arena.floorY - sy);
-      ctx.fillStyle = '#6b4a2e';
-      ctx.fillRect(0, gy, window.innerWidth, window.innerHeight - gy);
-      var cols = Math.ceil(window.innerWidth / tile) + 1;
-      var rows = Math.ceil((window.innerHeight - gy) / tile);
-      for (var ci = 0; ci < cols; ci++) {
-        var tx = ci * tile;
-        for (var rj = 0; rj < rows; rj++) {
-          var nz = noise(ci, rj);
-          var ty = gy + rj * tile;
-          if (rj === 0) {
-            ctx.fillStyle = nz < 0.5 ? '#4f9d3a' : '#3f8a2f';
-            ctx.fillRect(tx, ty, tile, tile);
-            if (nz < 0.35) ctx.fillRect(tx + scale, ty - scale, scale, scale);
-          } else if (nz < 0.18) {
-            ctx.fillStyle = '#7d5a39';
-            ctx.fillRect(tx, ty, tile, tile);
-          } else if (nz > 0.9) {
-            ctx.fillStyle = '#58391f';
-            ctx.fillRect(tx + scale, ty + scale, 2 * scale, 2 * scale);
-          }
-        }
-      }
+      drawGround(ctx, scale, gy, window.innerWidth, window.innerHeight - gy);
 
       /* 墓石 */
       for (var gi = 0; gi < graves.length; gi++) {
@@ -1487,6 +1489,7 @@
     function stop() {
       if (!game) return;
       game = null;
+      if (state !== 'over') track('terraria_quit', { score: score, wave: wave, seconds: Math.round((performance.now() - runStart) / 1000) });
       cancelAnimationFrame(raf);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
@@ -1525,5 +1528,75 @@
     raf = requestAnimationFrame(step);
   }
 
+  /* --- 末尾のステージ ---------------------------------------------
+     草の上にドロイドが立ち、スライムが 2 匹うろついている。タップか Space で始まる。
+     見えている間だけ動かす。 */
+  var sceneCtx = scene.getContext('2d');
+  var sceneVisible = false;
+  var sceneRaf = 0;
+  var sceneSlimes = [
+    { type: SLIME_TYPES.green, u: 0.2, face: 1, phase: 0 },
+    { type: SLIME_TYPES.blue, u: 0.78, face: -1, phase: 1.7 }
+  ];
+  function drawScene(now) {
+    sceneRaf = 0;
+    var w = scene.clientWidth;
+    var h = scene.clientHeight;
+    if (!w || !h) return;
+    var dpr = window.devicePixelRatio || 1;
+    if (scene.width !== Math.round(w * dpr) || scene.height !== Math.round(h * dpr)) {
+      scene.width = Math.round(w * dpr);
+      scene.height = Math.round(h * dpr);
+    }
+    var s = w < 720 ? 2 : 3;
+    var t = now / 1000;
+    sceneCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    sceneCtx.clearRect(0, 0, w, h);
+    sceneCtx.imageSmoothingEnabled = false;
+    var groundH = Math.round(h * 0.42);
+    var floorY = h - groundH;
+    drawGround(sceneCtx, s, floorY, w, groundH);
+    for (var i = 0; i < sceneSlimes.length; i++) {
+      var sl = sceneSlimes[i];
+      /* ときどき小さく跳ねる */
+      var hop = Math.max(0, Math.sin(t * 2.2 + sl.phase));
+      var squash = hop > 0 ? -0.12 * hop : 0.1 * Math.max(0, Math.sin(t * 2.2 + sl.phase + 3));
+      drawSlimeAt(sceneCtx, s, sl.type, w * sl.u, floorY + s - hop * hop * 6 * s, sl.face, squash, false);
+    }
+    var px = Math.round(w / 2 - SPRITE_W * s / 2);
+    var py = floorY + s - SPRITE_H * s;
+    drawRows(sceneCtx, BODY, px, py, s);
+    drawRows(sceneCtx, LEGS_STAND, px, py + BODY.length * s, s);
+    drawGunAt(sceneCtx, s, px + SHOULDER_COL * s, py + SHOULDER_ROW * s, Math.sin(t * 1.3) * 0.08, false, false);
+    if (sceneVisible && !game) sceneRaf = requestAnimationFrame(drawScene);
+  }
+  function wakeScene() {
+    if (!sceneRaf) sceneRaf = requestAnimationFrame(drawScene);
+  }
+  var sceneSeen = false;
+  new IntersectionObserver(function (entries) {
+    sceneVisible = entries.some(function (e) { return e.isIntersecting; });
+    if (sceneVisible) {
+      wakeScene();
+      if (!sceneSeen) {
+        sceneSeen = true;
+        track('terraria_view');
+      }
+    }
+  }).observe(scene);
+  window.addEventListener('resize', wakeScene);
+
   launch.addEventListener('click', start);
+  /* ページの末尾では Space を押しても何も起きないので、そこでだけ開始に使う */
+  window.addEventListener('keydown', function (e) {
+    if (game || e.key !== ' ' || !sceneVisible || !atBottom()) return;
+    if (e.target !== document.body && e.target !== launch && e.target !== root) return;
+    e.preventDefault();
+    start();
+  });
+  /* やめた後はステージの絵を描き直す */
+  var observer = new MutationObserver(function () {
+    if (!root.classList.contains('tr-playing')) wakeScene();
+  });
+  observer.observe(root, { attributes: true, attributeFilter: ['class'] });
 })();
