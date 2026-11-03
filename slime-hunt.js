@@ -1173,6 +1173,24 @@
       buff.dual = Math.max(0, buff.dual - dt);
       buff.jet = Math.max(0, buff.jet - dt);
 
+      /* 無限ジェットの間は、飛んでいなくても背中から青い火花が流れ落ちる。
+         立っていても効いていると分かり、終わり際は火花が途切れて点滅する */
+      if (buff.jet > 0 && !(buff.jet < 3 && Math.floor(t * 6) % 2 === 0)) {
+        var nozzleX = player.facing > 0 ? player.x + scale : player.x + player.w - scale;
+        for (var ji = 0; ji < 2; ji++) {
+          pushParticle({
+            x: nozzleX + (Math.random() - 0.5) * 2 * scale,
+            y: player.y + 12 * scale,
+            vx: (Math.random() - 0.5) * 80 * k - player.vx * 0.3,
+            vy: (60 + Math.random() * 120) * k,
+            life: 0.4 + Math.random() * 0.4,
+            age: 0,
+            size: scale,
+            color: Math.random() < 0.5 ? '#8fc3ff' : '#4a8bff'
+          });
+        }
+      }
+
       /* アイテム。落ちて来て床に乗り、拾うまで残る。触れたら拾う */
       for (var ii = items.length - 1; ii >= 0; ii--) {
         var it = items[ii];
@@ -1429,14 +1447,13 @@
         var dualOn = buff.dual > 0 && !(buff.dual < 3 && Math.floor(t * 6) % 2 === 0);
         if (player.thrusting && (buff.jet <= 0 || jetOn)) {
           /* 無限ジェット中は炎を大きく青く */
-          var flameLen = jetOn ? 5 + Math.floor(Math.random() * 4) : 2 + Math.floor(Math.random() * 3);
+          var flameLen = jetOn ? 8 + Math.floor(Math.random() * 4) : 2 + Math.floor(Math.random() * 3);
           for (var r = 0; r < flameLen; r++) {
             ctx.fillStyle = jetOn
-              ? (r < 2 ? '#e0f0ff' : r < 4 ? '#8fc3ff' : '#4a8bff')
+              ? (r < 3 ? '#e0f0ff' : r < 6 ? '#8fc3ff' : '#4a8bff')
               : (r === 0 ? '#ffe08a' : r === 1 ? '#ffb13b' : '#ff6a2a');
-            var wide = jetOn ? r < 4 : r === 0;
-            var fx = px + (wide ? 0 : Math.random() < 0.5 ? 0 : 1) * scale;
-            var fw = (wide ? 2 : 1) * scale;
+            var fw = jetOn ? (r < 5 ? 3 : r < 8 ? 2 : 1) * scale : (r === 0 ? 2 : 1) * scale;
+            var fx = px + (jetOn ? (r < 5 ? -scale : Math.random() < 0.5 ? 0 : -scale) : (r === 0 ? 0 : Math.random() < 0.5 ? 0 : scale));
             ctx.fillRect(fx, py + (12 + r) * scale, fw, scale);
           }
         }
