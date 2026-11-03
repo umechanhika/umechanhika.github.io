@@ -1,12 +1,12 @@
-/* テラリアモード。ページの末尾まで読んだ人へのおまけ。
+/* スライム退治。ページの末尾まで読んだ人へのおまけ。
 
-   末尾の「テラリアモードで遊ぶ」を押すと、今見えている画面がそのまま闘技場になり、
+   末尾の「スライム退治で遊ぶ」を押すと、今見えている画面がそのまま闘技場になり、
    サイト主のアイコンをドットに起こしたキャラが地面に立つ。左右から跳ねて来るスライムを
    避けながら戦う。射撃は自動で、向いている側のいちばん近いスライムを狙って連射する。
    矢印キー（スマホはスティック）で移動、上で跳び、押し続けると燃料のある間だけ飛ぶ。
    スライムに触れるとハートが減り、3 つ失うと終わり。得点と自己ベストを出して、すぐ再挑戦できる。
 
-   外れたレーザーは掲載情報に当たって壊す。壊すのは見た目だけで、要素に tr-gone を付けて
+   外れたレーザーは掲載情報に当たって壊す。壊すのは見た目だけで、要素に sh-gone を付けて
    visibility: hidden にするのでレイアウトは崩れず、再挑戦とやめるときに全部元に戻す。
 
    座標はすべて文書座標（画面座標に scrollY を足した値）で持つ。ページはスクロールさせず、
@@ -15,10 +15,10 @@
   'use strict';
 
   var root = document.documentElement;
-  var stage = document.querySelector('.tr-stage');
-  var launch = document.querySelector('.tr-stage__start');
-  var scene = document.querySelector('.tr-stage__scene');
-  if (!stage || !launch || !scene) throw new Error('terraria-mode: 末尾のステージが見つからない');
+  var stage = document.querySelector('.sh-stage');
+  var launch = document.querySelector('.sh-stage__start');
+  var scene = document.querySelector('.sh-stage__scene');
+  if (!stage || !launch || !scene) throw new Error('slime-hunt: 末尾のステージが見つからない');
 
   /* アクセス解析。GA4 が読み込まれていないとき（広告ブロックなど）は何もしない */
   function track(name, params) {
@@ -195,7 +195,7 @@
   var BOX = '.card, .ref, .job';
   /* 足場になる葉。文章の上には乗れない */
   var PLATFORM_LEAF = 'img, dl > div, a.channel, a.btn, .tags li';
-  var SKIP = '.site-head, .skip, .route-bus, .tr-stage, .tr-ui';
+  var SKIP = '.site-head, .skip, .route-bus, .sh-stage, .sh-ui';
   var TEXT_COLORS = ['#201a13', '#4d443a', '#6f6353'];
   var FRAME_COLORS = ['#e3dac8', '#efe7d6', '#fffdf6'];
 
@@ -370,7 +370,7 @@
   }
 
   /* 自己ベスト。端末に残す。プライベートブラウズなどで保存できない環境では 0 のまま扱う */
-  var BEST_KEY = 'terraria-mode.best';
+  var BEST_KEY = 'slime-hunt.best';
   function readBest() {
     try {
       return Number(localStorage.getItem(BEST_KEY)) || 0;
@@ -464,10 +464,10 @@
      先頭を越えたら「踏破」を出して、また末尾から 2 周目に入る。 */
   var header = document.querySelector('.site-head');
   var stationLinks = document.querySelectorAll('.route-map__station a');
-  if (!header || !stationLinks.length) throw new Error('terraria-mode: 経路図が見つからない');
+  if (!header || !stationLinks.length) throw new Error('slime-hunt: 経路図が見つからない');
   var STAGES = Array.prototype.map.call(stationLinks, function (a) {
     var target = document.querySelector(a.getAttribute('href'));
-    if (!target) throw new Error('terraria-mode: 駅の行き先が見つからない: ' + a.getAttribute('href'));
+    if (!target) throw new Error('slime-hunt: 駅の行き先が見つからない: ' + a.getAttribute('href'));
     return { el: target, name: a.textContent.trim() };
   }).reverse();
   var MOVE_SECONDS = 1.1;
@@ -500,29 +500,29 @@
 
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     var startScroll = window.scrollY;
-    root.classList.add('tr-playing');
-    track('terraria_start');
+    root.classList.add('sh-playing');
+    track('slime_hunt_start');
 
     /* --- 画面の部品を組む --- */
 
-    var canvas = el('canvas', 'tr-canvas');
+    var canvas = el('canvas', 'sh-canvas');
     canvas.setAttribute('aria-hidden', 'true');
-    var ui = el('div', 'tr-ui' + (coarse ? ' is-touch' : ''));
+    var ui = el('div', 'sh-ui' + (coarse ? ' is-touch' : ''));
 
-    var hud = el('div', 'tr-hud');
-    var hearts = el('div', 'tr-hearts');
+    var hud = el('div', 'sh-hud');
+    var hearts = el('div', 'sh-hearts');
     hearts.setAttribute('aria-label', '残り体力');
     var heartEls = [];
     for (var hi = 0; hi < HEARTS; hi++) {
-      var heart = el('span', 'tr-heart');
+      var heart = el('span', 'sh-heart');
       heart.innerHTML = HEART_SVG;
       hearts.appendChild(heart);
       heartEls.push(heart);
     }
-    var waveEl = el('span', 'tr-stat');
-    var scoreEl = el('span', 'tr-stat');
-    var bestEl = el('span', 'tr-stat');
-    var quit = el('button', 'tr-quit', 'やめる');
+    var waveEl = el('span', 'sh-stat');
+    var scoreEl = el('span', 'sh-stat');
+    var bestEl = el('span', 'sh-stat');
+    var quit = el('button', 'sh-quit', 'やめる');
     quit.type = 'button';
     hud.appendChild(hearts);
     hud.appendChild(waveEl);
@@ -530,28 +530,28 @@
     hud.appendChild(bestEl);
     hud.appendChild(quit);
 
-    var pad = el('div', 'tr-pad');
-    var stick = el('div', 'tr-stick');
+    var pad = el('div', 'sh-pad');
+    var stick = el('div', 'sh-stick');
     stick.setAttribute('aria-label', '移動スティック');
-    var stickKnob = el('span', 'tr-knob');
+    var stickKnob = el('span', 'sh-knob');
     stick.appendChild(stickKnob);
     pad.appendChild(stick);
 
-    var banner = el('p', 'tr-banner');
-    var bannerWave = el('span', 'tr-banner__wave');
-    var bannerNote = el('span', 'tr-banner__note');
+    var banner = el('p', 'sh-banner');
+    var bannerWave = el('span', 'sh-banner__wave');
+    var bannerNote = el('span', 'sh-banner__note');
     banner.appendChild(bannerWave);
     banner.appendChild(bannerNote);
 
-    var over = el('div', 'tr-over');
+    var over = el('div', 'sh-over');
     over.hidden = true;
-    var overTitle = el('p', 'tr-over__title', 'スライムにやられました');
-    var overScore = el('p', 'tr-over__score');
-    var overBest = el('p', 'tr-over__best');
-    var overActions = el('div', 'tr-over__actions');
-    var retry = el('button', 'tr-retry', coarse ? 'もう一回' : 'もう一回（Space）');
+    var overTitle = el('p', 'sh-over__title', 'スライムにやられました');
+    var overScore = el('p', 'sh-over__score');
+    var overBest = el('p', 'sh-over__best');
+    var overActions = el('div', 'sh-over__actions');
+    var retry = el('button', 'sh-retry', coarse ? 'もう一回' : 'もう一回（Space）');
     retry.type = 'button';
-    var overQuit = el('button', 'tr-quit', 'やめる');
+    var overQuit = el('button', 'sh-quit', 'やめる');
     overQuit.type = 'button';
     overActions.appendChild(retry);
     overActions.appendChild(overQuit);
@@ -589,7 +589,7 @@
       arena.height = window.innerHeight;
       arena.groundH = Math.round(window.innerHeight * 0.22);
       arena.floorY = arena.top + arena.height - arena.groundH;
-      ui.style.setProperty('--tr-ground', arena.groundH + 'px');
+      ui.style.setProperty('--sh-ground', arena.groundH + 'px');
       near = world.leaves.filter(function (t) {
         return t.x < arena.left + arena.width && t.x + t.w > arena.left &&
           t.y < arena.floorY && t.y + t.h > arena.top;
@@ -778,7 +778,7 @@
 
     function flash(t, now) {
       if (!t.hitUntil) {
-        t.el.classList.add('tr-hit');
+        t.el.classList.add('sh-hit');
         flashing.push(t);
       }
       t.hitUntil = now + 0.09;
@@ -787,7 +787,7 @@
     /* 掲載情報を壊す。壊した数は得点に足す */
     function destroyTarget(t) {
       t.alive = false;
-      t.el.classList.add('tr-gone');
+      t.el.classList.add('sh-gone');
       spawnDebris(t.x, Math.max(t.y, arena.top), t.w, Math.min(t.y + t.h, arena.floorY) - Math.max(t.y, arena.top),
         Math.max(6, Math.min(50, Math.round(t.w * t.h / 1500))), scale, t.colors);
       destroyed++;
@@ -796,7 +796,7 @@
       var box = t.box;
       if (box && box.alive && box.leaves.every(function (l) { return !l.alive; })) {
         box.alive = false;
-        box.el.classList.add('tr-gone');
+        box.el.classList.add('sh-gone');
         spawnDebris(box.x, box.y, box.w, box.h, 24, scale, box.colors);
         if (Math.random() < 0.7) dropItem(Math.random() < 0.5 ? 'dual' : 'jet', box.x + box.w / 2, Math.min(Math.max(box.y + box.h / 2, arena.top + 20), arena.floorY - 20));
       }
@@ -852,8 +852,8 @@
 
     function restorePage() {
       world.leaves.concat(world.boxes).forEach(function (x) {
-        x.el.classList.remove('tr-gone');
-        x.el.classList.remove('tr-hit');
+        x.el.classList.remove('sh-gone');
+        x.el.classList.remove('sh-hit');
         x.alive = true;
         x.hitUntil = 0;
         if (x.maxHp) x.hp = x.maxHp;
@@ -1003,7 +1003,7 @@
 
     function die() {
       state = 'dead';
-      track('terraria_over', { score: score, wave: wave, seconds: Math.round((performance.now() - runStart) / 1000) });
+      track('slime_hunt_over', { score: score, wave: wave, seconds: Math.round((performance.now() - runStart) / 1000) });
       deadTimer = 1.0;
       player.dead = true;
       spawnDebris(player.x, player.y, player.w, player.h, 40, scale, [PALETTE.A, PALETTE.K, PALETTE.W, PALETTE.P]);
@@ -1114,7 +1114,7 @@
       /* 当たった光を戻す */
       for (var f = flashing.length - 1; f >= 0; f--) {
         if (flashing[f].hitUntil <= t) {
-          flashing[f].el.classList.remove('tr-hit');
+          flashing[f].el.classList.remove('sh-hit');
           flashing[f].hitUntil = 0;
           flashing.splice(f, 1);
         }
@@ -1489,7 +1489,7 @@
     function stop() {
       if (!game) return;
       game = null;
-      if (state !== 'over') track('terraria_quit', { score: score, wave: wave, seconds: Math.round((performance.now() - runStart) / 1000) });
+      if (state !== 'over') track('slime_hunt_quit', { score: score, wave: wave, seconds: Math.round((performance.now() - runStart) / 1000) });
       cancelAnimationFrame(raf);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
@@ -1499,17 +1499,17 @@
       restorePage();
       canvas.remove();
       ui.remove();
-      root.classList.remove('tr-playing');
+      root.classList.remove('sh-playing');
       window.scrollTo({ top: startScroll, left: window.scrollX, behavior: 'instant' });
       launch.focus({ preventScroll: true });
     }
 
-    /* 調整用の覗き窓。URL に ?tr-debug を付けたときだけ、状態を読める */
-    if (new URLSearchParams(location.search).has('tr-debug')) {
-      window.trDebugGive = function (key) { if (state === 'play') pickUp({ key: key }); };
-      window.trDebugDrop = function (key) { if (state === 'play') dropItem(key, player.x + player.w / 2 + 120 * k, player.y); };
-      window.trDebugSkip = function () { if (state === 'play') { slimes = []; toSpawn = 0; waveGap = 0; } };
-      window.trDebug = function () {
+    /* 調整用の覗き窓。URL に ?sh-debug を付けたときだけ、状態を読める */
+    if (new URLSearchParams(location.search).has('sh-debug')) {
+      window.shDebugGive = function (key) { if (state === 'play') pickUp({ key: key }); };
+      window.shDebugDrop = function (key) { if (state === 'play') dropItem(key, player.x + player.w / 2 + 120 * k, player.y); };
+      window.shDebugSkip = function () { if (state === 'play') { slimes = []; toSpawn = 0; waveGap = 0; } };
+      window.shDebug = function () {
         return {
           state: state, wave: wave, score: score, hearts: player.hearts, destroyed: destroyed,
           drops: drops, pickups: pickups, buff: { dual: buff.dual, jet: buff.jet },
@@ -1584,7 +1584,7 @@
       wakeScene();
       if (!sceneSeen) {
         sceneSeen = true;
-        track('terraria_view');
+        track('slime_hunt_view');
       }
     }
   }).observe(scene);
@@ -1600,7 +1600,7 @@
   });
   /* やめた後はステージの絵を描き直す */
   var observer = new MutationObserver(function () {
-    if (!root.classList.contains('tr-playing')) wakeScene();
+    if (!root.classList.contains('sh-playing')) wakeScene();
   });
   observer.observe(root, { attributes: true, attributeFilter: ['class'] });
 })();

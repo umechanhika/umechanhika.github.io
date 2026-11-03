@@ -11,11 +11,11 @@ GitHub Pages が `master` ブランチのルートをそのまま配信します
 | `index.html` | サイト本体。1ページで完結します |
 | `style.css` | スタイル。設計の方針はファイル冒頭のコメントにあります |
 | `route-map.js` | ヘッダーの経路図と本文のスクロールを同期します |
-| `terraria-mode.js` | 末尾のおまけ。ドット絵のキャラでスライムと戦い、外れた弾でページを壊して遊べます |
-| `terraria-mode.css` | おまけのスタイル |
+| `slime-hunt.js` | 末尾のおまけ。ドット絵のキャラでスライムと戦い、外れた弾でページを壊して遊べます |
+| `slime-hunt.css` | おまけのスタイル |
 | `assets/` | 画像 |
 | `tools/ogp.html` | OGP 画像の版下 |
-| `tools/works-terraria.html` | つくったものに載せるテラリアモードの紹介画像の版下 |
+| `tools/works-slime-hunt.html` | つくったものに載せるスライム退治の紹介画像の版下 |
 | `robots.txt` | クローラー向けの許可設定とサイトマップの場所 |
 | `sitemap.xml` | 検索エンジン向けのサイトマップ。ページを増やしたら追記します |
 | `CNAME` | GitHub Pages のカスタムドメイン設定 |

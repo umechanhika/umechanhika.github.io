@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------
-   テラリアモード。ページの末尾まで読んだ人へのおまけ。動きは terraria-mode.js。
+   スライム退治。ページの末尾まで読んだ人へのおまけ。動きは slime-hunt.js。
 
    本文のデザイン規則をそのまま使う。枠線は押せるもの、塗りは押せないもの。
    色・間隔・文字の大きさは style.css のスケールから選ぶ。
@@ -7,8 +7,8 @@
 
 /* --- 末尾のステージ。ページの一番下が地面で、草の上にキャラが立っていて、触ると始まる --- */
 
-.tr-stage { margin-top: var(--s4); background: var(--paper); }
-.tr-stage__lead {
+.sh-stage { margin-top: var(--s4); background: var(--paper); }
+.sh-stage__lead {
   margin: 0;
   padding: 0 var(--gutter) var(--s2);
   background: var(--paper);
@@ -16,7 +16,7 @@
   font-size: var(--t-meta);
   color: var(--muted);
 }
-.tr-stage__start {
+.sh-stage__start {
   position: relative;
   display: block;
   width: 100%;
@@ -29,12 +29,12 @@
   font: inherit;
 }
 /* 遊んでいる間は案内を隠す。闘技場の背景に文字が残らないように */
-html.tr-playing .tr-stage__lead,
-html.tr-playing .tr-stage__hint { visibility: hidden; }
-.tr-stage__start:focus-visible { outline: 2px solid var(--route); outline-offset: -2px; }
-/* 高さは terraria-mode.js が画面高から決める。これは読み込み直後の仮の値 */
-.tr-stage__scene { display: block; width: 100%; height: 280px; image-rendering: pixelated; }
-.tr-stage__hint {
+html.sh-playing .sh-stage__lead,
+html.sh-playing .sh-stage__hint { visibility: hidden; }
+.sh-stage__start:focus-visible { outline: 2px solid var(--route); outline-offset: -2px; }
+/* 高さは slime-hunt.js が画面高から決める。これは読み込み直後の仮の値 */
+.sh-stage__scene { display: block; width: 100%; height: 280px; image-rendering: pixelated; }
+.sh-stage__hint {
   position: absolute;
   left: 50%;
   top: var(--s2);
@@ -49,10 +49,10 @@ html.tr-playing .tr-stage__hint { visibility: hidden; }
 /* --- 遊んでいる間 --- */
 
 /* ページのスクロールはゲームが握る。指やホイールでは動かさない */
-html.tr-playing { overflow: hidden; }
+html.sh-playing { overflow: hidden; }
 
 /* canvas は inset だけだと固有サイズのまま置かれるので、画面いっぱいに広げる */
-.tr-canvas {
+.sh-canvas {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -61,7 +61,7 @@ html.tr-playing { overflow: hidden; }
   touch-action: none;
   cursor: pointer;
 }
-.tr-ui {
+.sh-ui {
   position: fixed;
   inset: 0;
   z-index: 51;
@@ -70,13 +70,13 @@ html.tr-playing { overflow: hidden; }
   font-size: var(--t-meta);
   line-height: 1.6;
 }
-.tr-ui > * { pointer-events: auto; }
+.sh-ui > * { pointer-events: auto; }
 
 /* 体力・燃料・ウェーブ・得点・ベスト・やめる。掲載情報に被らないよう、地面の上に置く。
-   --tr-ground は地面の高さで、terraria-mode.js が入れる */
-.tr-hud {
+   --sh-ground は地面の高さで、slime-hunt.js が入れる */
+.sh-hud {
   position: absolute;
-  bottom: calc(var(--tr-ground, 180px) - 48px);
+  bottom: calc(var(--sh-ground, 180px) - 48px);
   right: var(--gutter);
   left: var(--gutter);
   display: flex;
@@ -85,11 +85,11 @@ html.tr-playing { overflow: hidden; }
   justify-content: flex-end;
   gap: var(--s1);
 }
-.tr-hearts { display: inline-flex; gap: 3px; margin-right: auto; }
-.tr-heart { display: inline-flex; color: #ff3b3b; }
-.tr-heart.is-lost { color: var(--rule); }
-.tr-heart svg { display: block; fill: currentColor; }
-.tr-stat {
+.sh-hearts { display: inline-flex; gap: 3px; margin-right: auto; }
+.sh-heart { display: inline-flex; color: #ff3b3b; }
+.sh-heart.is-lost { color: var(--rule); }
+.sh-heart svg { display: block; fill: currentColor; }
+.sh-stat {
   display: inline-flex;
   align-items: center;
   min-height: 36px;
@@ -99,8 +99,8 @@ html.tr-playing { overflow: hidden; }
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
-.tr-quit,
-.tr-retry {
+.sh-quit,
+.sh-retry {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -112,13 +112,13 @@ html.tr-playing { overflow: hidden; }
   font: inherit;
   cursor: pointer;
 }
-.tr-quit:hover,
-.tr-retry:hover { border-color: var(--ink); color: var(--ink); }
-.tr-retry { border-color: var(--route); color: var(--route); min-height: 48px; padding: 0 var(--s3); }
-.tr-retry:hover { background: var(--route); color: var(--route-ink); }
+.sh-quit:hover,
+.sh-retry:hover { border-color: var(--ink); color: var(--ink); }
+.sh-retry { border-color: var(--route); color: var(--route); min-height: 48px; padding: 0 var(--s3); }
+.sh-retry:hover { background: var(--route); color: var(--route-ink); }
 
 /* ウェーブの表示。枠付きの箱で出て、少し見せて、消える */
-.tr-banner {
+.sh-banner {
   position: absolute;
   left: 50%;
   top: 20%;
@@ -132,8 +132,8 @@ html.tr-playing { overflow: hidden; }
   transition: opacity 0.3s ease, transform 0.3s ease;
   pointer-events: none;
 }
-.tr-banner.is-shown { opacity: 1; transform: translate(-50%, -50%); }
-.tr-banner__wave {
+.sh-banner.is-shown { opacity: 1; transform: translate(-50%, -50%); }
+.sh-banner__wave {
   display: block;
   font-family: var(--serif);
   font-size: var(--t-lead);
@@ -143,10 +143,10 @@ html.tr-playing { overflow: hidden; }
   color: var(--ink);
   white-space: nowrap;
 }
-.tr-banner__note { display: block; margin-top: var(--s1); color: var(--muted); white-space: nowrap; }
+.sh-banner__note { display: block; margin-top: var(--s1); color: var(--muted); white-space: nowrap; }
 
 /* スマホの操作盤。画面の中央下にスティック。ジャンプは上に倒すか、画面をタップ */
-.tr-pad {
+.sh-pad {
   display: none;
   position: absolute;
   left: 0;
@@ -154,8 +154,8 @@ html.tr-playing { overflow: hidden; }
   bottom: calc(var(--s3) + env(safe-area-inset-bottom, 0px));
   justify-content: center;
 }
-.tr-ui.is-touch .tr-pad { display: flex; }
-.tr-stick {
+.sh-ui.is-touch .sh-pad { display: flex; }
+.sh-stick {
   position: relative;
   width: 96px;
   height: 96px;
@@ -166,7 +166,7 @@ html.tr-playing { overflow: hidden; }
   user-select: none;
   -webkit-user-select: none;
 }
-.tr-knob {
+.sh-knob {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -180,12 +180,12 @@ html.tr-playing { overflow: hidden; }
 }
 /* 狭い画面では HUD を 1 行に収める */
 @media (max-width: 720px) {
-  .tr-hud { bottom: calc(var(--tr-ground, 180px) - 44px); gap: 4px; }
-  .tr-stat, .tr-hud .tr-quit { min-height: 32px; padding: 0 8px; font-size: var(--t-label); }
+  .sh-hud { bottom: calc(var(--sh-ground, 180px) - 44px); gap: 4px; }
+  .sh-stat, .sh-hud .sh-quit { min-height: 32px; padding: 0 8px; font-size: var(--t-label); }
 }
 
 /* やられたとき。得点・ベスト・もう一回 */
-.tr-over {
+.sh-over {
   position: absolute;
   left: 50%;
   top: 45%;
@@ -196,14 +196,14 @@ html.tr-playing { overflow: hidden; }
   background: var(--card);
   text-align: center;
 }
-.tr-over__title { margin: 0; font-size: var(--t-sub); font-weight: 700; color: var(--ink); }
-.tr-over__score { margin: var(--s2) 0 0; font-size: 26px; font-weight: 700; color: var(--route); line-height: 1.4; font-variant-numeric: tabular-nums; }
-.tr-over__best { margin: 2px 0 0; color: var(--muted); font-variant-numeric: tabular-nums; }
-.tr-over__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s2); margin-top: var(--s3); }
+.sh-over__title { margin: 0; font-size: var(--t-sub); font-weight: 700; color: var(--ink); }
+.sh-over__score { margin: var(--s2) 0 0; font-size: 26px; font-weight: 700; color: var(--route); line-height: 1.4; font-variant-numeric: tabular-nums; }
+.sh-over__best { margin: 2px 0 0; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sh-over__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s2); margin-top: var(--s3); }
 
 /* --- 撃たれた側 --- */
 
 /* 当たった瞬間。レイアウトを動かさないよう outline で光らせる */
-.tr-hit { outline: 2px solid #ff3b3b; outline-offset: -1px; }
+.sh-hit { outline: 2px solid #ff3b3b; outline-offset: -1px; }
 /* 壊れたもの。場所は残して見えなくする。やめたときに戻す */
-.tr-gone { visibility: hidden !important; }
+.sh-gone { visibility: hidden !important; }
