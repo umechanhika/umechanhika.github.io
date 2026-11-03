@@ -28,9 +28,10 @@
   cursor: pointer;
   font: inherit;
 }
-/* 遊んでいる間は案内を隠す。闘技場の背景に文字が残らないように */
+/* 遊んでいる間はステージを丸ごと隠す。絵の更新が止まった最後の 1 コマや案内文が、闘技場の背景に残らないように */
 html.sh-playing .sh-stage__lead,
-html.sh-playing .sh-stage__hint { visibility: hidden; }
+html.sh-playing .sh-stage__hint,
+html.sh-playing .sh-stage__scene { visibility: hidden; }
 .sh-stage__start:focus-visible { outline: 2px solid var(--route); outline-offset: -2px; }
 /* 高さは slime-hunt.js が画面高から決める。これは読み込み直後の仮の値 */
 .sh-stage__scene { display: block; width: 100%; height: 280px; image-rendering: pixelated; }
