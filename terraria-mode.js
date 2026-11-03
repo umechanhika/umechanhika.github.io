@@ -28,8 +28,8 @@
     A: '#8fc34a', /* ドロイドの緑。頭と手 */
     D: '#161616', /* 髪 */
     W: '#ececec', /* 目とシャツ */
-    K: '#454545', /* スーツ。ズボンより明るくして裾の線を出す */
-    P: '#151515', /* ズボン */
+    K: '#333333', /* スーツ */
+    P: '#161616', /* ズボン */
     N: '#e0e0e0', /* スニーカー */
     O: '#8a8f94', /* スニーカーの底。紙色に白が溶けないための縁 */
     J: '#7d8591', /* ジェットパック */
@@ -45,30 +45,39 @@
     '...DAAAAWAWA..',
     '...AAAAAAAAA..',
     '...AAAAAAAAA..',
-    'JJ.KKKAWAKKK..',
-    'JL.KKKWWWKKK..',
+    'JJ.KKKAAAKKK..',
+    'JL.KKKWAWKKK..',
     'JJ.KKKWWWKKK..',
     'JJ.KKKWWWKKK..',
     'JJ.KKKWWWKKK..',
     'RR.KKKWWWKKK..',
+    '...KKKWWWKKK..',
+    '...KKKWWWKKK..',
+    '...KKKWWWKKK..',
+    '...KKKWWWKKK..',
     '...KKKWWWKKK..'
   ];
+  /* 脚は元の絵のとおり、長い上着の裾から細い 2 本が出て、外向きに広い靴を履く */
   var LEGS_STAND = [
-    '...PPP...PPP..',
-    '...PPP...PPP..',
-    '...PPP...PPP..',
+    '....PP..PP....',
+    '....PP..PP....',
+    '....PP..PP....',
+    '....PP..PP....',
+    '....PP..PP....',
     '..NNNN..NNNN..',
     '..OOOO..OOOO..'
   ];
   var LEGS_WALK = [
-    '..PPP.....PPP.',
-    '..PPP.....PPP.',
-    '.PPP.......PPP',
+    '...PP....PP...',
+    '...PP....PP...',
+    '..PP......PP..',
+    '..PP......PP..',
+    '..PP......PP..',
     'NNNN......NNNN',
     'OOOO......OOOO'
   ];
   var SPRITE_W = 14;
-  var SPRITE_H = 18;
+  var SPRITE_H = 24;
   /* 肩の位置（スプライト内のマス）。銃はここを軸に回す */
   var SHOULDER_COL = 9;
   var SHOULDER_ROW = 7;

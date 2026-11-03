@@ -23,7 +23,7 @@
   font-family: inherit;
   cursor: pointer;
 }
-.tr-launch__icon { display: block; width: 28px; height: 36px; image-rendering: pixelated; }
+.tr-launch__icon { display: block; width: 28px; height: 48px; image-rendering: pixelated; }
 @media (prefers-reduced-motion: reduce) {
   .tr-launch-row { transition: none; transform: none; }
 }
