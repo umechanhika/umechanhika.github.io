@@ -84,13 +84,14 @@
   /* 肩から銃口までの長さ（マス） */
   var GUN_LEN = 17;
 
-  function drawRows(ctx, rows, ox, oy, scale) {
+  function drawRows(ctx, rows, ox, oy, scale, palette) {
+    var colors = palette || PALETTE;
     for (var r = 0; r < rows.length; r++) {
       var row = rows[r];
       for (var c = 0; c < row.length; c++) {
         var ch = row.charAt(c);
         if (ch === '.') continue;
-        ctx.fillStyle = PALETTE[ch];
+        ctx.fillStyle = colors[ch];
         ctx.fillRect(ox + c * scale, oy + r * scale, scale, scale);
       }
     }
@@ -268,7 +269,7 @@
      テラリアのスライムと同じで、地面で少し休んでからキャラへ向かって跳ねる。
      大きさはマス数。速さ・跳ぶ高さ・休む時間・体力・倒した点が種類で違う。 */
   var SLIME_TYPES = {
-    green: { cw: 10, ch: 7, hp: 3, speed: 120, jump: 600, rest: 0.55, points: 10, body: '#5db13e', light: '#a3e27f', eye: '#1d3a12' },
+    green: { cw: 10, ch: 7, hp: 3, speed: 132, jump: 600, rest: 0.55, points: 10, body: '#5db13e', light: '#a3e27f', eye: '#1d3a12' },
     blue: { cw: 12, ch: 8, hp: 6, speed: 160, jump: 660, rest: 0.42, points: 20, body: '#3d7ed6', light: '#9cc3f2', eye: '#122a55' },
     red: { cw: 14, ch: 10, hp: 10, speed: 185, jump: 740, rest: 0.32, points: 40, body: '#d2473a', light: '#f2a497', eye: '#4a1410' }
   };
@@ -304,6 +305,23 @@
       /* 保存できない環境。画面の表示は今回の値で続ける */
     }
   }
+
+  /* 墓石。やられた場所に落ちて来て、再挑戦しても地面に残る */
+  var GRAVE_PALETTE = { G: '#8d9196', D: '#5c6066', L: '#b9bdc2' };
+  var GRAVE = [
+    '..LGGG..',
+    '.LGGGGG.',
+    'LGGGGGGG',
+    'LGGDDGGG',
+    'LGDDDDGG',
+    'LGGDDGGG',
+    'LGGDDGGG',
+    'LGGGGGGG',
+    'LGGGGGGG',
+    'DDDDDDDD'
+  ];
+  var GRAVE_W = 8;
+  var GRAVE_H = 10;
 
   /* ドット絵のハート。HUD の残り体力に使う */
   var HEART_SVG = '<svg viewBox="0 0 7 6" width="14" height="12" aria-hidden="true" shape-rendering="crispEdges">' +
@@ -369,6 +387,10 @@
     pad.appendChild(stick);
 
     var banner = el('p', 'tr-banner');
+    var bannerWave = el('span', 'tr-banner__wave');
+    var bannerNote = el('span', 'tr-banner__note');
+    banner.appendChild(bannerWave);
+    banner.appendChild(bannerNote);
 
     var over = el('div', 'tr-over');
     over.hidden = true;
@@ -417,6 +439,7 @@
       arena.height = window.innerHeight;
       arena.groundH = Math.round(window.innerHeight * 0.22);
       arena.floorY = arena.top + arena.height - arena.groundH;
+      ui.style.setProperty('--tr-ground', arena.groundH + 'px');
       near = world.leaves.filter(function (t) {
         return t.x < arena.left + arena.width && t.x + t.w > arena.left &&
           t.y < arena.floorY && t.y + t.h > arena.top;
@@ -450,6 +473,7 @@
     var slimes = [];
     var lasers = [];
     var particles = [];
+    var graves = [];
     var flashing = [];
     var shotCooldown = 0;
     var muzzleFlash = 0;
@@ -460,6 +484,7 @@
     var spec = null;
     var toSpawn = 0;
     var spawnTimer = 0;
+    var spawnLeft = true;
     var waveGap = 0.6;
     var score = 0;
     var destroyed = 0;
@@ -490,10 +515,11 @@
     }
     updateHud();
 
-    function showBanner(text) {
-      banner.textContent = text;
+    function showBanner(n, count) {
+      bannerWave.textContent = 'WAVE ' + n;
+      bannerNote.textContent = 'スライムが ' + count + ' 匹来ます';
       banner.classList.add('is-shown');
-      bannerTimer = 1.4;
+      bannerTimer = 2.2;
     }
 
     /* --- 入力 --- */
@@ -641,7 +667,8 @@
       spec = waveSpec(wave);
       toSpawn = spec.count;
       spawnTimer = 0.9;
-      showBanner('WAVE ' + wave);
+      spawnLeft = Math.random() < 0.5;
+      showBanner(wave, spec.count);
       updateHud();
     }
 
@@ -649,7 +676,9 @@
       var type = SLIME_TYPES[spec.pick()];
       var w = type.cw * scale;
       var h = type.ch * scale;
-      var fromLeft = Math.random() < 0.5;
+      /* 左右交互に出す。片側だけだと正面の自動射撃が全部倒してしまう */
+      var fromLeft = spawnLeft;
+      spawnLeft = !spawnLeft;
       slimes.push({
         type: type,
         w: w, h: h,
@@ -728,6 +757,14 @@
       deadTimer = 1.0;
       player.dead = true;
       spawnDebris(player.x, player.y, player.w, player.h, 40, scale, [PALETTE.A, PALETTE.K, PALETTE.W, PALETTE.P]);
+      graves.push({
+        x: player.x + player.w / 2 - GRAVE_W * scale / 2,
+        y: player.y,
+        vy: -200 * k,
+        w: GRAVE_W * scale,
+        h: GRAVE_H * scale,
+        landed: false
+      });
       if (score > best) {
         best = score;
         writeBest(best);
@@ -780,6 +817,18 @@
       else if (state === 'dead') {
         deadTimer -= dt;
         if (deadTimer <= 0) showOver();
+      }
+
+      /* 墓石。落ちて来て地面に刺さる */
+      for (var gi = 0; gi < graves.length; gi++) {
+        var g = graves[gi];
+        if (g.landed) continue;
+        g.vy += 1500 * k * dt;
+        g.y += g.vy * dt;
+        if (g.y + g.h >= arena.floorY + scale) {
+          g.y = arena.floorY + scale - g.h;
+          g.landed = true;
+        }
       }
 
       /* 破片。地面で跳ねる */
@@ -1069,6 +1118,11 @@
             ctx.fillRect(tx + scale, ty + scale, 2 * scale, 2 * scale);
           }
         }
+      }
+
+      /* 墓石 */
+      for (var gi = 0; gi < graves.length; gi++) {
+        drawRows(ctx, GRAVE, Math.round(graves[gi].x - sx), Math.round(graves[gi].y - sy), scale, GRAVE_PALETTE);
       }
 
       /* スライム */
