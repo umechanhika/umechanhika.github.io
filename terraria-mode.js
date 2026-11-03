@@ -269,23 +269,36 @@
      テラリアのスライムと同じで、地面で少し休んでからキャラへ向かって跳ねる。
      大きさはマス数。速さ・跳ぶ高さ・休む時間・体力・倒した点が種類で違う。 */
   var SLIME_TYPES = {
-    green: { cw: 10, ch: 7, hp: 3, speed: 150, jump: 600, rest: 0.42, points: 10, body: '#5db13e', light: '#a3e27f', eye: '#1d3a12' },
-    blue: { cw: 12, ch: 8, hp: 6, speed: 180, jump: 660, rest: 0.36, points: 20, body: '#3d7ed6', light: '#9cc3f2', eye: '#122a55' },
-    red: { cw: 14, ch: 10, hp: 10, speed: 200, jump: 740, rest: 0.3, points: 40, body: '#d2473a', light: '#f2a497', eye: '#4a1410' }
+    green: { cw: 10, ch: 7, hp: 3, speed: 140, jump: 600, rest: 0.45, points: 10, body: '#5db13e', light: '#a3e27f', eye: '#1d3a12' },
+    blue: { cw: 12, ch: 8, hp: 4, speed: 170, jump: 660, rest: 0.38, points: 20, body: '#3d7ed6', light: '#9cc3f2', eye: '#122a55' },
+    red: { cw: 14, ch: 10, hp: 6, speed: 190, jump: 740, rest: 0.32, points: 40, body: '#d2473a', light: '#f2a497', eye: '#4a1410' }
   };
 
-  /* n 番目のウェーブの構成。数と速さが少しずつ増え、3 から青、5 から赤が混ざる */
+  /* n 番目のウェーブの構成。難しさは数と速さで作る。
+     青は 3 から 1/4 で混ざり始めて徐々に増え、赤は 6 から。硬さで壁を作らない */
   function waveSpec(n) {
+    var blue = n >= 3 ? Math.min(0.5, 0.25 + 0.08 * (n - 3)) : 0;
+    var red = n >= 6 ? Math.min(0.3, 0.15 + 0.03 * (n - 6)) : 0;
     return {
-      count: Math.min(20, 4 + 2 * (n - 1)),
-      interval: Math.max(0.45, 1.3 - 0.1 * (n - 1)),
-      speed: 1 + 0.07 * (n - 1),
+      count: Math.min(24, 3 + 2 * (n - 1)),
+      interval: Math.max(0.45, 1.5 - 0.1 * (n - 1)),
+      speed: 1 + 0.035 * (n - 1),
       pick: function () {
         var r = Math.random();
-        if (n >= 5 && r < 0.2) return 'red';
-        if (n >= 3 && r < 0.5) return 'blue';
+        if (r < red) return 'red';
+        if (r < red + blue) return 'blue';
         return 'green';
       }
+    };
+  }
+
+  /* n 番目のウェーブの銃。進むほど連射が速くなり、3 から弾が 2 匹を貫き、5 から 3 方向に撃つ。
+     ウェーブが進むほど薙ぎ払う気持ちよさが増すようにする */
+  function gunSpec(n) {
+    return {
+      interval: Math.max(0.05, 0.12 - 0.01 * (n - 1)),
+      pierce: n >= 3 ? 2 : 1,
+      spread: n >= 5 ? 3 : 1
     };
   }
 
@@ -555,7 +568,9 @@
     var flashing = [];
     var shotCooldown = 0;
     var muzzleFlash = 0;
-    var SHOT_INTERVAL = 0.12;
+    var combo = 0;
+    var comboTimer = 0;
+    var shake = 0;
     var state = 'play';
     var deadTimer = 0;
     var wave = 0;
@@ -881,9 +896,17 @@
     }
 
     function killSlime(s) {
-      spawnDebris(s.x, s.y, s.w, s.h, 14, scale, [s.type.body, s.type.light]);
-      score += s.type.points;
-      if (Math.random() < 0.08) dropItem('heart', s.x + s.w / 2, s.y);
+      spawnDebris(s.x, s.y, s.w, s.h, 24, scale, [s.type.body, s.type.light]);
+      /* 1.2 秒以内に続けて倒すとコンボ。倍率は 1 匹ごとに 1 割増し、最大 2 倍 */
+      combo = comboTimer > 0 ? combo + 1 : 1;
+      comboTimer = 1.2;
+      var mult = Math.min(2, 1 + 0.1 * (combo - 1));
+      var points = Math.round(s.type.points * mult);
+      score += points;
+      floatText(s.x + s.w / 2, s.y, '+' + points, s.type.body);
+      if (combo >= 3) floatText(player.x + player.w / 2, player.y - 8 * scale, combo + ' COMBO', '#e0a93a');
+      shake = 0.1;
+      if (Math.random() < 0.12) dropItem('heart', s.x + s.w / 2, s.y);
       updateHud();
     }
 
@@ -1065,6 +1088,9 @@
       if (player.onGround) player.fuel = Math.min(1, player.fuel + dt / (FUEL_SECONDS * 0.6));
       if (buff.jet > 0) player.fuel = 1;
 
+      comboTimer = Math.max(0, comboTimer - dt);
+      shake = Math.max(0, shake - dt);
+
       /* 強化の残り時間 */
       buff.dual = Math.max(0, buff.dual - dt);
       buff.jet = Math.max(0, buff.jet - dt);
@@ -1189,8 +1215,9 @@
       player.gunAngle += (aimAt(player.facing, frontX) - player.gunAngle) * Math.min(1, dt * 30);
       if (buff.dual > 0) player.gunAngle2 += (aimAt(-player.facing, backX) - player.gunAngle2) * Math.min(1, dt * 30);
       shotCooldown -= dt;
+      var gunNow = gunSpec(Math.max(1, wave));
       if (shotCooldown <= 0) {
-        shotCooldown = SHOT_INTERVAL;
+        shotCooldown = gunNow.interval;
         muzzleFlash = 0.05;
         var sp = 1300 * k;
         var guns = buff.dual > 0
@@ -1198,14 +1225,19 @@
           : [{ dir: player.facing, x: frontX, ang: player.gunAngle }];
         for (var gi2 = 0; gi2 < guns.length; gi2++) {
           var gun = guns[gi2];
-          var sa = gun.ang + (Math.random() - 0.5) * 0.05;
-          lasers.push({
-            x: gun.x + gun.dir * Math.cos(gun.ang) * GUN_LEN * scale,
-            y: shoulderY + Math.sin(gun.ang) * GUN_LEN * scale,
-            vx: gun.dir * Math.cos(sa) * sp,
-            vy: Math.sin(sa) * sp,
-            age: 0
-          });
+          for (var si2 = 0; si2 < gunNow.spread; si2++) {
+            var offset = gunNow.spread > 1 ? (si2 - (gunNow.spread - 1) / 2) * 0.14 : 0;
+            var sa = gun.ang + offset + (Math.random() - 0.5) * 0.05;
+            lasers.push({
+              x: gun.x + gun.dir * Math.cos(gun.ang) * GUN_LEN * scale,
+              y: shoulderY + Math.sin(gun.ang) * GUN_LEN * scale,
+              vx: gun.dir * Math.cos(sa) * sp,
+              vy: Math.sin(sa) * sp,
+              age: 0,
+              pierce: gunNow.pierce,
+              hit: []
+            });
+          }
         }
       }
       muzzleFlash -= dt;
@@ -1225,7 +1257,7 @@
           var py = oy + (b.y - oy) * st / 3;
           for (var sj = slimes.length - 1; sj >= 0; sj--) {
             var sl = slimes[sj];
-            if (!inRect(px, py, sl.x, sl.y, sl.w, sl.h)) continue;
+            if (b.hit.indexOf(sl) >= 0 || !inRect(px, py, sl.x, sl.y, sl.w, sl.h)) continue;
             sl.hp -= 1;
             sl.flash = 0.08;
             sl.x += (b.vx > 0 ? 1 : -1) * 3 * k;
@@ -1234,8 +1266,13 @@
               killSlime(sl);
               slimes.splice(sj, 1);
             }
-            dead = true;
-            break hit;
+            /* 貫く弾は、残りの数だけ次のスライムへ進む */
+            b.hit.push(sl);
+            b.pierce--;
+            if (b.pierce <= 0) {
+              dead = true;
+              break hit;
+            }
           }
           for (var tj = 0; tj < near.length; tj++) {
             var tg = near[tj];
@@ -1316,6 +1353,8 @@
       var sy = window.scrollY;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      /* 倒した瞬間だけ画面が少し揺れる */
+      if (shake > 0) ctx.translate(Math.round((Math.random() - 0.5) * 6 * k), Math.round((Math.random() - 0.5) * 6 * k));
       ctx.imageSmoothingEnabled = false;
 
       /* 地面。いちばん上が草、その下が土。模様はタイルの位置から決めるので揺れない */
@@ -1366,8 +1405,9 @@
         ctx.save();
         ctx.translate(b.x - sx, b.y - sy);
         ctx.rotate(Math.atan2(b.vy, b.vx));
+        var thick = b.pierce > 1 ? 1.5 : 1;
         ctx.fillStyle = '#ff3b3b';
-        ctx.fillRect(-7 * scale, -scale, 7 * scale, 2 * scale);
+        ctx.fillRect(-7 * scale, -scale * thick, 7 * scale, 2 * scale * thick);
         ctx.fillStyle = '#ffd0d0';
         ctx.fillRect(-6 * scale, -scale / 2, 5 * scale, scale);
         ctx.restore();
@@ -1468,11 +1508,13 @@
     /* 調整用の覗き窓。URL に ?tr-debug を付けたときだけ、状態を読める */
     if (new URLSearchParams(location.search).has('tr-debug')) {
       window.trDebugGive = function (key) { if (state === 'play') pickUp({ key: key }); };
+      window.trDebugSkip = function () { if (state === 'play') { slimes = []; toSpawn = 0; waveGap = 0; } };
       window.trDebug = function () {
         return {
           state: state, wave: wave, score: score, hearts: player.hearts, destroyed: destroyed,
           drops: drops, pickups: pickups, buff: { dual: buff.dual, jet: buff.jet },
           stage: wave > 0 ? stageOf(wave).name : null, scrollY: window.scrollY, moving: !!move,
+          combo: combo,
           items: items.map(function (i) { return { key: i.key, x: i.x, y: i.y }; }),
           elapsed: (performance.now() - runStart) / 1000,
           player: { x: player.x, y: player.y, onGround: player.onGround, fuel: player.fuel },
