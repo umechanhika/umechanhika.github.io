@@ -45,6 +45,23 @@
 })();
 </script>
 
+<script>
+(function () {
+  var CLARITY_ID = 'XXXXXXXXXX';
+  if (CLARITY_ID === 'XXXXXXXXXX') {
+    console.error('[未設定] Microsoft ClarityのプロジェクトIDが差し替えられていません。ヒートマップとセッション録画は記録されていません。index.htmlのCLARITY_IDを直してください。');
+    return;
+  }
+  window.clarity = window.clarity || function () {
+    (window.clarity.q = window.clarity.q || []).push(arguments);
+  };
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://www.clarity.ms/tag/' + CLARITY_ID;
+  document.head.appendChild(s);
+})();
+</script>
+
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
